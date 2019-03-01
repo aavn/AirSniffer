@@ -23,8 +23,8 @@ void handleConfig();
 void wifiConfigVerify();
 void wifiConfigResult();
 void launchWeb(void);
-void clearStoredConfig(void);
-void clearStoredWifi(void);
+//void clearStoredConfig(void);
+//void clearStoredWifi(void);
 
 ///////////////////
 
@@ -467,7 +467,7 @@ void storeConfig(HubConfig* smartConfig){
     }
   EEPROM.commit();
 }
-void clearStoredWifi(){
+/*void clearStoredWifi(){
 	HubConfig * dummy;
   Serial.println("\nclearing wifi config only");
   int i;
@@ -490,7 +490,7 @@ void clearStoredConfig(){
 
   EEPROM.commit();
   //delay(100);
-}
+}*/
 bool isConfigMode(HubConfig* smartConfig){
 	return smartConfig->mode == CONFIG_MODE;
 }
@@ -511,17 +511,19 @@ void prepareSmartConfig(HubConfig* smartConfig){
 	smartConfig->mode = CONFIG_MODE;
 	smartConfig->ssid[0] = '\0';
 	smartConfig->pwd[0] = '\0';
+	EEPROM.write(0, smartConfig->mode);
+	EEPROM.commit();
 	//smartConfig->code[0] = '\0';
 	//smartConfig->latitude[0] = '\0';
 	//smartConfig->longitude[0] = '\0';
 	//smartConfig->macStr[0] = '\0';
 	//clearStoredConfig();
     //hubConfig.mode = NORM_MODE;
-	WiFi.mode(WIFI_OFF);
+	//WiFi.mode(WIFI_OFF);
 	//delay(50);
-	clearStoredWifi();
+	//clearStoredWifi();
 	printConfig(smartConfig);
-    storeConfig(smartConfig);
+    //storeConfig(smartConfig);
     
 }
 void printConfig(HubConfig* smartConfig){

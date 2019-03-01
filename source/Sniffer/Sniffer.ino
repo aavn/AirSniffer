@@ -149,8 +149,8 @@ void highInterrupt(){
   refVoltage = analogRead(REF_PIN);
   if(btnVoltage == refVoltage){
     WiFi.disconnect();
+    WiFi.mode(WIFI_OFF);
     prepareSmartConfig(&hubConfig);
-    delay(5000);
     ESP.restart();
   }
 }
