@@ -141,8 +141,9 @@ void wifiConfigVerify(){
 	code = server.arg("code");
     latitude = server.arg("lat");
 	longitude = server.arg("long");
-    macStr = server.arg("mac");
-    
+    //macStr = server.arg("mac");
+    macStr= WiFi.macAddress();
+	
     strcpy(smartConfig.ssid,ssid.c_str());
 	strcpy(smartConfig.pwd,pwd.c_str());
 	//send response to client
@@ -230,9 +231,9 @@ void handlePwd(){
 	decodedStr="";
 	decodedStr.concat (_oldConfig->longitude);
 	htmlPage.concat("<tr><td>Longitude</td><td><input type=\"text\" name=\"long\" id=\"long\" value=\"" + decodedStr +"\"\\></td></tr>");
-	decodedStr="";
-	decodedStr.concat (_oldConfig->macStr);
-	htmlPage.concat("<tr><td>MAC</td><td colspan=2><input type=\"text\" name=\"mac\" id=\"mac\" value=\"" + decodedStr +"\"\\></td></tr>");
+	//decodedStr="";
+	//decodedStr.concat (_oldConfig->macStr);
+	htmlPage.concat("<tr><td>MAC</td><td colspan=2><input readonly type=\"text\" name=\"mac\" id=\"mac\" value=\"" + WiFi.macAddress() +"\"\\></td></tr>");
 	htmlPage.concat("<tr><td></td><td><input type=\"submit\" value=\"Connect\"\\></td></tr>");
 	htmlPage.concat("</table></form></body></html>");
   
