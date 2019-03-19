@@ -374,7 +374,10 @@ void storeConfig(HubConfig* smartConfig){
   String qsid = "",qpass="", qcode ="",qlatitude="", qlongitude="", qmac="";
   
   int size;
-   for (size = 0; size < sizeof(smartConfig); ++size) { 
+  for (size = 0; size < sizeof(smartConfig->mode)+sizeof(smartConfig->ssid)
+					+sizeof(smartConfig->pwd)+sizeof(smartConfig->code)+sizeof(smartConfig->latitude)
+					+sizeof(smartConfig->longitude)+sizeof(smartConfig->macStr); 
+			++size) { 
   	EEPROM.write(size, '\0'); 
   	Serial.print(".");
   }
@@ -408,33 +411,42 @@ void storeConfig(HubConfig* smartConfig){
   
   Serial.print("writing eeprom ssid from byte :");
   Serial.println(usedByteCount);
-  for (int i = 0; i < qsid.length(); ++i)
+  
+  int i;
+  for ( i = 0; i < qsid.length(); ++i)
     {
       EEPROM.write(usedByteCount+i, qsid[i]);
 //       Serial.print("Wrote: ");
 //       Serial.println(qsid[i]); 
     }
-
+  EEPROM.write(usedByteCount+i, '\0');
   usedByteCount += sizeof(smartConfig->ssid);
+  
   Serial.print("writing eeprom pass from byte :");
   Serial.println(usedByteCount);
-  for (int i = 0; i < qpass.length(); ++i)
+  for ( i = 0; i < qpass.length(); ++i)
     {
       EEPROM.write(usedByteCount+i, qpass[i]);
 //       Serial.print("Wrote: ");
 //       Serial.println(qpass[i]); 
-    }    
+    }
+   
+  EEPROM.write(usedByteCount+i, '\0');   
   usedByteCount += sizeof(smartConfig->pwd);
+  
+  
   Serial.print("writing eeprom code from byte :");
   Serial.println(usedByteCount);
-  for (int i = 0; i < qcode.length(); ++i)
+  for ( i = 0; i < qcode.length(); ++i)
     {
       EEPROM.write(usedByteCount+i, qcode[i]);
 //       Serial.print("Wrote: ");
 //       Serial.println(qcode[i]); 
     }
-  
+
+  EEPROM.write(usedByteCount+i, '\0');
   usedByteCount += sizeof(smartConfig->code);
+  
   Serial.print("writing eeprom lat from byte :");
   Serial.println(usedByteCount);
   int j;
@@ -450,16 +462,17 @@ void storeConfig(HubConfig* smartConfig){
   Serial.print("writing eeprom long from byte :");
   Serial.println(usedByteCount);
   
-  for (int i = 0; i < qlongitude.length(); ++i)
+  for (i = 0; i < qlongitude.length(); ++i)
     {
       EEPROM.write(usedByteCount+i, qlongitude[i]);
 //       Serial.print("Wrote: ");
 //       Serial.println(qlongitude[i]); 
     }
+	EEPROM.write(usedByteCount+i, '\0');
   usedByteCount += sizeof(smartConfig->longitude);
   Serial.print("writing eeprom mac from byte :");
   Serial.println(usedByteCount);
-  for (int i = 0; i < qmac.length(); ++i)
+  for ( i = 0; i < qmac.length(); ++i)
     {
       EEPROM.write(usedByteCount+i, qmac[i]);
 //       Serial.print("Wrote: ");
