@@ -1,7 +1,0 @@
-github "Alamofire/Alamofire" "4.7.3"
-github "Hearst-DD/ObjectMapper" "3.3.0"
-github "ashleymills/Reachability.swift" "v4.1.0"
-github "bitstadium/HockeySDK-iOS" "5.1.2"
-github "duemunk/Async" "2.0.4"
-github "jdg/MBProgressHUD" "1.1.0"
-github "tristanhimmelman/AlamofireObjectMapper" "5.1.0"
