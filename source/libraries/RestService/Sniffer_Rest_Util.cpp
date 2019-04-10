@@ -10,14 +10,14 @@
 bool saveData(Environment * envirData, RestProperty * restProperty)
 {
 	
-  //WiFiClientSecure client;
+  WiFiClientSecure client;
   // Attempt to make a connection to the remote server
   Serial.println("\nAttempt to make a connection to the remote server");
   //#ifndef SNIFFER_TEST
 ///	WiFiClientSecure client;
-//	client.setFingerprint(finger);
+	client.setFingerprint(finger);
  // #else
-	WiFiClient client;  
+	//WiFiClient client;  
 //  #endif
   if ( !client.connect(serverAddress, serverPort) ) {
     Serial.println("connection failed");
