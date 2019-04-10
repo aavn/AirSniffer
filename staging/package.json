@@ -1,0 +1,6 @@
+{
+  "name": "air-sniffer-firmware",
+  "version": "0.19.13_rc",
+  "description": "Staging. No OTA",
+  "file": "Sniffer.ino.bin"
+}
