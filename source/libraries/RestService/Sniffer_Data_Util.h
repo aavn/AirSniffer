@@ -1,8 +1,9 @@
 #ifndef _DATAUTIL_H
 #define _DATAUTIL_H
-#include <ESP8266WiFi.h>
-#include <Sniffer_Rest_Property.h>
 
+#include <Sniffer_Rest_Property.h>
+//macro
+#define isValidAirData(env) (env.novaPm25>0)|| (env.novaPm10>0) || (env.temperature>0) || (env.humidity>0)
 struct Environment{
   float novaPm25;
   float novaPm10;
@@ -11,9 +12,8 @@ struct Environment{
 
 };
 
-void convertAirData(String dataStr);
-void formatAAVNData(char * dataStr, Environment envirData, RestProperty restProperty);
-bool isValidAirData(Environment envirData);
-void printData(Environment envirData);
+//void convertAirData(String dataStr);
+void formatAAVNData(char * dataStr, Environment * envirData, RestProperty * restProperty);
+void printData(Environment * envirData);
 
 #endif

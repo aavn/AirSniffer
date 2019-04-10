@@ -1,17 +1,25 @@
 #include "Sniffer_Rest_Util.h"
 #include <SPI.h>
 #include <WiFiClientSecure.h>
+#include <WiFiClient.h>
 #include "Sniffer_Data_Util.h"
 #include <Sniffer_Rest_Property.h>
 
 #define STATUS_201 "HTTP/1.1 201 Created"
 
-bool saveData(Environment envirData, RestProperty restProperty)
+bool saveData(Environment * envirData, RestProperty * restProperty)
 {
-  WiFiClientSecure client;
+	
+  //WiFiClientSecure client;
   // Attempt to make a connection to the remote server
   Serial.println("\nAttempt to make a connection to the remote server");
-  if ( !client.connect(serverAddress, httpsPort) ) {
+  //#ifndef SNIFFER_TEST
+///	WiFiClientSecure client;
+//	client.setFingerprint(finger);
+ // #else
+	WiFiClient client;  
+//  #endif
+  if ( !client.connect(serverAddress, serverPort) ) {
     Serial.println("connection failed");
 	return false;
   }
@@ -20,19 +28,21 @@ bool saveData(Environment envirData, RestProperty restProperty)
   // We now create a URI for the request
   //String postData = "{\"source\": {\"senderCode\": \"143253\",\"netAddress\": \"192.168.1.1\"},\"data\": [{\"symbolCode\": \"O3\",\"value\": 4.1}, {\"symbolCode\": \"PM2.5\",\"value\": 55}]}";
   char data[600];
+  char strLenght[5];
   formatAAVNData(data, envirData,restProperty);
   Serial.print("Data: ");
   Serial.println(data);
-  String len = String(strlen(data));
-  String requestStr = String("POST ") + url + " HTTP/1.1\r\n" +
-               "Host: " + serverAddress + "\r\n" +
-               "User-Agent: SnifferHub\r\n" +
-               "Content-Length: " + len +"\r\n"+
-               "Content-Type: application/json\r\n"+
-               "Connection: close\r\n"+
-               "\r\n"+
-               data+
-               "\r\n";
+  sprintf (strLenght,"%u\0",strlen(data));
+  //String len = String(strlen(data));
+  String requestStr = String("POST ");
+	requestStr.concat(snifferUrl);
+	requestStr.concat(" HTTP/1.1\r\nHost: ");
+	requestStr.concat(serverAddress);
+	requestStr.concat( "\r\nUser-Agent: SnifferHub\r\nContent-Length: " );
+	requestStr.concat(strLenght);
+	requestStr.concat("\r\nContent-Type: application/json\r\nConnection: close\r\n\r\n");
+	requestStr.concat(data);
+    requestStr.concat("\r\n");
   Serial.println(requestStr);
   // This will send the request to the server
   client.print(requestStr);
