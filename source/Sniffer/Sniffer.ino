@@ -7,6 +7,8 @@
 #include <Sniffer_Rest_Util.h>
 #include "properties.h"
 
+
+
 SnifferDustSensor dustSensor;
 Environment envData;
 
@@ -38,7 +40,7 @@ void setup() {
   attachInterrupt(CONFIG_BTN, highInterrupt, FALLING);
 
   initSnifferConfig(&hubConfig);
-  if (isConfigMode(&hubConfig)) {
+  if (isConfigMode(hubConfig.mode)) {
     setupAP(&hubConfig);
 
   } else {
@@ -67,7 +69,7 @@ void loop() {
   if (needRestart()) {
     ESP.restart();
   } else {
-    if (isConfigMode(&hubConfig)) {
+    if (isConfigMode(hubConfig.mode)) {
       handleSmartConfigClient();
       fastBlinkForConfiguration();
     } else {
@@ -87,7 +89,7 @@ void loop() {
 
             RestProperty restProperty = readRestfulConfig();
 
-            bool ok = saveData(envData, restProperty);
+            bool ok = saveData(&envData, &restProperty);
             Serial.print("Save data:");
             Serial.println(ok);
             WiFi.disconnect();
@@ -187,7 +189,7 @@ void readSnifferData() {
     readTemperatureAndHumidity();
     delay(5000);
   }
-  printData(envData);
+  printData(&envData);
   delay(1000);
   Serial.println("Done reading data");
 }
@@ -227,4 +229,3 @@ void turnLedOn() {
 void turnLedOff() {
   digitalWrite(ERR_PIN, LOW);
 }
-
