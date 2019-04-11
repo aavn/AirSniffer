@@ -1,13 +1,22 @@
-#include <SPI.h>
+
+#define SNIFFER_TEST false //true: running on test server, false: running on production server
+
+#if SNIFFER_TEST
+  #include <SnifferOTA_staging.h>
+  #include <Sniffer_Rest_Util_staging.h>
+#else 
+  
+  #include <SnifferOTA.h>
+  #include <Sniffer_Rest_Util.h>
+#endif  
+
 #include <dht.h>
+
 #include <Sniffer_Smart_Config.h>
 #include <Sniffer_Wifi_Util.h>
-#include <Sniffer_Dust_Sensor.h>
-#include <Sniffer_Data_Util.h>
-#include <Sniffer_Rest_Util.h>
+//#include <Sniffer_Rest_Constant.h>
+
 #include "properties.h"
-
-
 
 SnifferDustSensor dustSensor;
 Environment envData;
@@ -15,7 +24,7 @@ Environment envData;
 HubConfig hubConfig;
 dht DHT;
 
-char data[50] = {0};
+//char data[50] = {0};
 
 int i = 0;
 int btnVoltage, refVoltage;
@@ -29,25 +38,30 @@ bool isPowerOn = true;
 #define LED_READ_SENSOR_ERROR 3
 int blink_type = LED_NORMAL;
 
+unsigned long lastOTACheck=0;
+void performOTA();
+
 void setup() {
 
   Serial.begin(115200);
   Serial.println();
-  Serial.println("Hub started");
+  Serial.println("Sniffer started");
+  Serial.print("Sniffer version: ");
+  Serial.println(VERSION);
   pinMode(CONFIG_BTN, INPUT_PULLUP);
   pinMode(ERR_PIN, OUTPUT);
   pinMode(REF_PIN, OUTPUT);
   attachInterrupt(CONFIG_BTN, highInterrupt, FALLING);
 
   initSnifferConfig(&hubConfig);
+  printConfig(&hubConfig);
+  
   if (isConfigMode(hubConfig.mode)) {
     setupAP(&hubConfig);
 
   } else {
-
+    performOTA();
     dustSensor.begin(NOVA_RX, NOVA_TX);
-    Serial.print("LIBRARY VERSION: ");
-    Serial.println(DHT_LIB_VERSION);
   }
   lastCall = millis();
   lastReadCall = millis();
@@ -73,12 +87,18 @@ void loop() {
       handleSmartConfigClient();
       fastBlinkForConfiguration();
     } else {
-
+      performOTA();
       if (((millis() - lastReadCall) > 600000) || isPowerOn || (millis() < lastReadCall)) {
         isPowerOn = false;
         lastReadCall = millis();
         turnLedOn();
         readSnifferData();
+        //for testing purpose
+        /*envData.novaPm25 = 10.0;
+         envData.novaPm10 = 20.0;
+         envData.temperature = 25.0;
+         envData.humidity = 45.0;
+         */
         if (isValidAirData(envData)) {
           turnLedOn();
           if (WiFi.status() != WL_CONNECTED) {
@@ -88,8 +108,12 @@ void loop() {
           if (WiFi.status() == WL_CONNECTED) {
 
             RestProperty restProperty = readRestfulConfig();
-
+            #if SNIFFER_TEST
+            bool ok = saveData_staging(&envData, &restProperty);
+            #else
             bool ok = saveData(&envData, &restProperty);
+            
+            #endif
             Serial.print("Save data:");
             Serial.println(ok);
             WiFi.disconnect();
@@ -122,6 +146,7 @@ RestProperty readRestfulConfig() {
   restProperty.TEMP_SENSOR_pro = TEMP_SENSOR;
   restProperty.PM_SENSOR_pro = PM_SENSOR;
   restProperty.mac_str_pro = hubConfig.macStr;
+  
   return restProperty;
 }
 
@@ -177,11 +202,6 @@ void readSnifferData() {
   envData.novaPm25 = dustSensor.getPM25();
   envData.novaPm10 = dustSensor.getPM10();
 
-  Serial.print ("PM10:");
-  Serial.println(dustSensor.getPM10());
-  Serial.print ("PM2.5:");
-  Serial.println(dustSensor.getPM25());
-
   readTemperatureAndHumidity();
   int attemp = 0;
   while ((envData.temperature <= 0 || envData.humidity <= 0) && attemp++ < 3) { //try 3 time read
@@ -228,4 +248,41 @@ void turnLedOn() {
 }
 void turnLedOff() {
   digitalWrite(ERR_PIN, LOW);
+}
+void performOTA(){
+  
+    if(isOTA(hubConfig.ota) ){
+    //ignore OTA if last check was less than 24h
+      if(lastOTACheck > 0 && millis() - lastOTACheck < ONE_DAY){
+        return;
+      }
+      
+      if (WiFi.status() != WL_CONNECTED) {
+    
+        connectWifi(&hubConfig, ERR_PIN);
+      }
+      if (WiFi.status() == WL_CONNECTED) {
+        #if SNIFFER_TEST 
+        if(checkAndUpdate_staging(VERSION)== HTTP_UPDATE_OK)
+        
+        #else
+        if(checkAndUpdate(VERSION)== HTTP_UPDATE_OK)
+        #endif  
+        {
+          Serial.println("Hoooray! I got new version! Restarting myself");
+          Serial.flush();
+          delay(100);
+          ESP.restart();
+        }else{
+          
+          lastOTACheck = millis();
+          Serial.println("No update, check again after 24h");
+        }
+      }else{
+        Serial.println("No wifi connection");
+      }
+    }else{
+      Serial.println("My owner want to handle upgrade manually!");
+    }
+  
 }

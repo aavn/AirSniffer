@@ -3,13 +3,13 @@
 
 #include <dht.h>
 #include <Sniffer_Dust_Sensor.h>
-#include <Sniffer_Rest_Util.h>
 
 
+#define VERSION "0.19.14_RC"
 #define TEMP_SENSOR "DHT11"
 #define PM_SENSOR "Nova fitness"
-#define updateInterval  30 * 1000 
 
+#define ONE_DAY 86400000 //ms of 24h
 
 //extern ESP8266WebServer server;
 //extern bool wifiStatus;

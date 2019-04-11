@@ -36,5 +36,16 @@
 
 const char degree = char (223);
 const char micro = char (241);
+
+struct RestProperty{
+  String sender_pro;
+  String latitude_pro;
+  String longitude_pro;
+  String TEMP_SENSOR_pro;
+  String PM_SENSOR_pro;
+  String mac_str_pro;
+};
+
+
 #define CUBIC_INDEX 0
 #endif
