@@ -49,7 +49,7 @@ void setup() {
    envData.novaPm10 = 20.0;
    envData.temperature = 25.0;
    envData.humidity = 45.0;
-   printData(envData);
+   printData(&envData);
    delay(5000);
   
    
@@ -69,7 +69,7 @@ void loop() {
     restProperty.TEMP_SENSOR_pro= TEMP_SENSOR;
     restProperty.PM_SENSOR_pro= PM_SENSOR;
 	  restProperty.mac_str_pro = "FB-E3-DB-AB-5F-01";
-    bool ok = saveData(envData,restProperty);
+    bool ok = saveData(&envData,&restProperty);
     if(ok){
       Serial.println("Saved on server");
     }else{
