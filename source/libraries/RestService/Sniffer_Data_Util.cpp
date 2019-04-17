@@ -6,7 +6,7 @@
 
 void formatAAVNData(char * dataStr, Environment * envirData, RestProperty * restProperty){
   // put your setup code here, to run once:
-  const size_t capacity = JSON_ARRAY_SIZE(4) + 4*JSON_OBJECT_SIZE(1) + 2*JSON_OBJECT_SIZE(2) + 5*JSON_OBJECT_SIZE(3);
+  const size_t capacity = 550;//JSON_ARRAY_SIZE(4) + 4*JSON_OBJECT_SIZE(1) + 2*JSON_OBJECT_SIZE(2) + 5*JSON_OBJECT_SIZE(3);
   Serial.println("CAPACITY: ");
   Serial.println(capacity);
   DynamicJsonDocument doc(capacity);
