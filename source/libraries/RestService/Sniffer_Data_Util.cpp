@@ -3,7 +3,7 @@
 #include <ArduinoJson.h>
 #include <Sniffer_Rest_Property.h>
 
-	
+
 void formatAAVNData(char * dataStr, Environment * envirData, RestProperty * restProperty){
   // put your setup code here, to run once:
   const size_t capacity = JSON_ARRAY_SIZE(4) + 4*JSON_OBJECT_SIZE(1) + 2*JSON_OBJECT_SIZE(2) + 5*JSON_OBJECT_SIZE(3);
@@ -24,7 +24,7 @@ void formatAAVNData(char * dataStr, Environment * envirData, RestProperty * rest
     JsonObject humVal = values.createNestedObject();
     humVal[CODE_KEY] = HUM_KEY;
     humVal[SENSOR_KEY] = restProperty->TEMP_SENSOR_pro;
-
+    
     JsonObject humValData = humVal.createNestedObject(VAL_KEY);
     humValData["value"] = envirData->humidity;
   }else{
@@ -35,9 +35,9 @@ void formatAAVNData(char * dataStr, Environment * envirData, RestProperty * rest
   }
   if(envirData->temperature >= TEMP_MIN && envirData->temperature <= TEMP_MAX){
     JsonObject tempVal = values.createNestedObject();
-    tempVal[CODE_KEY] = HUM_KEY;
+    tempVal[CODE_KEY] = TEMP_KEY;
     tempVal[SENSOR_KEY] = restProperty->TEMP_SENSOR_pro;
-  
+    
     JsonObject tempValData = tempVal.createNestedObject(VAL_KEY);
     tempValData["value"] = envirData->temperature;
   }else{
@@ -48,9 +48,9 @@ void formatAAVNData(char * dataStr, Environment * envirData, RestProperty * rest
   }
   if(envirData->novaPm25 >= PM_MIN && envirData->novaPm25 <= PM_MAX){
     JsonObject pm25Val = values.createNestedObject();
-    pm25Val[CODE_KEY] = HUM_KEY;
+    pm25Val[CODE_KEY] = PM25_KEY;
     pm25Val[SENSOR_KEY] = restProperty->PM_SENSOR_pro;
-  
+    
     JsonObject pm25ValData = pm25Val.createNestedObject(VAL_KEY);
     pm25ValData["value"] = envirData->novaPm25;
   }else{
@@ -61,9 +61,9 @@ void formatAAVNData(char * dataStr, Environment * envirData, RestProperty * rest
   }
   if(envirData->novaPm10 >= PM_MIN && envirData->novaPm10 <= PM_MAX){
     JsonObject pm10Val = values.createNestedObject();
-    pm10Val[CODE_KEY] = HUM_KEY;
+    pm10Val[CODE_KEY] = PM10_KEY;
     pm10Val[SENSOR_KEY] = restProperty->PM_SENSOR_pro;
-
+    
     JsonObject pm10ValData = pm10Val.createNestedObject(VAL_KEY);
     pm10ValData["value"] = envirData->novaPm10;
   }else{
