@@ -4,8 +4,12 @@
 #include <dht.h>
 #include <Sniffer_Dust_Sensor.h>
 
+#if SNIFFER_TEST
+  #define VERSION "0.19.14_rc" //release build
+#else 
+  #define VERSION "0.19.13"
+#endif
 
-#define VERSION "0.19.14_RC"
 #define TEMP_SENSOR "DHT11"
 #define PM_SENSOR "Nova fitness"
 
