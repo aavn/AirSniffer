@@ -2,11 +2,14 @@
 #include "Sniffer_Rest_Constant.h"
 #include <ArduinoJson.h>
 #include <Sniffer_Rest_Property.h>
-
+#include <TimeLib.h>
+void formatDate(long timeMillis, char * dateStr);
 
 void formatAAVNData(char * dataStr, Environment * envirData, RestProperty * restProperty){
   // put your setup code here, to run once:
   const size_t capacity = 550;//JSON_ARRAY_SIZE(4) + 4*JSON_OBJECT_SIZE(1) + 2*JSON_OBJECT_SIZE(2) + 5*JSON_OBJECT_SIZE(3);
+  char dateTimeStr[25];
+  formatDate(envirData->time,dateTimeStr );
   Serial.println("CAPACITY: ");
   Serial.println(capacity);
   DynamicJsonDocument doc(capacity);
@@ -27,6 +30,7 @@ void formatAAVNData(char * dataStr, Environment * envirData, RestProperty * rest
     
     JsonObject humValData = humVal.createNestedObject(VAL_KEY);
     humValData["value"] = envirData->humidity;
+	humValData[MEASURE_KEY] = dateTimeStr;
   }else{
     Serial.println("/*******************************/");
     Serial.print("ERROR reading HUM: ");
@@ -75,7 +79,15 @@ void formatAAVNData(char * dataStr, Environment * envirData, RestProperty * rest
   //serializeJson(doc, Serial);
   serializeJson(doc, dataStr,500);
 }
-
+void formatDate(long timeMillis, char * dateStr){
+	sprintf(dateStr, "%i-%i-%iT%i:%i:%i.000Z", year(timeMillis)
+											 , month(timeMillis)
+											 , day(timeMillis)
+											 , hour(timeMillis)
+											 , minute(timeMillis)
+											 , second(timeMillis)
+											 );
+}
 void printData(Environment * envirData){
   int index=0;
   index=index+1;

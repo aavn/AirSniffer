@@ -39,7 +39,7 @@ void setup() {
   initSnifferConfig(&hubConfig);
 
   attachInterrupt(CONFIG_BTN, highInterrupt, FALLING);
-  if(isConfigMode(hubConfig.mode)){
+  if(isConfigMode(&hubConfig)){
     setupAP(&hubConfig);
     
   }else{
@@ -57,7 +57,7 @@ void loop() {
       ESP.restart();
     #endif
   }else{
-    if(isConfigMode(hubConfig.mode)){
+    if(isConfigMode(&hubConfig)){
       
       handleSmartConfigClient();
     }else{
