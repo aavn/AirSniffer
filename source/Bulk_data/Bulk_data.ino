@@ -21,11 +21,24 @@
 #include <ESP8266WiFi.h>
 #include <WiFiUdp.h>
 #include <TimeLib.h>
-
+#include "Sniffer_Data_Util.h"
+#include "Sniffer_Rest_Property.h"
+#include <Sniffer_Smart_Config.h>
+#include <Sniffer_Wifi_Util.h>
 #ifndef STASSID
 #define STASSID "IoT"
 #define STAPSK  "IoT@@@VN1@3"
 #endif
+
+
+#define ERR_PIN D2  //GPO14
+#define sender "nJn1GBek70"
+#define lat "10.833787"
+#define longi "106.60434"
+
+#define TEMP_SENSOR "DHT11"
+#define PM_SENSOR "Nova fitness"
+
 
 const char * ssid = STASSID; // your network SSID (name)
 const char * pass = STAPSK;  // your network password
@@ -45,23 +58,29 @@ byte packetBuffer[ NTP_PACKET_SIZE]; //buffer to hold incoming and outgoing pack
 
 // A UDP instance to let us send and receive packets over UDP
 WiFiUDP udp;
+HubConfig hubConfig;
+Environment envData;
+RestProperty restProperty;
+char dateTimeStr[25];
+char data[DATA_SIZE];
 void syncTime();
 void printDateTime();
+
 void setup() {
   Serial.begin(115200);
   Serial.println();
-  Serial.println();
+  Serial.println(sizeof(data));
 
   // We start by connecting to a WiFi network
   Serial.print("Connecting to ");
   Serial.println(ssid);
-  WiFi.mode(WIFI_STA);
+  /*WiFi.mode(WIFI_STA);
   WiFi.begin(ssid, pass);
 
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
     Serial.print(".");
-  }
+  }*/
   Serial.println("");
 
   Serial.println("WiFi connected");
@@ -73,8 +92,39 @@ void setup() {
   Serial.print("Local port: ");
   Serial.println(udp.localPort());
   syncTime();
+  printDateTime();
+  // put your setup code here, to run once:
+
+
+  strcpy(hubConfig.ssid ,"IoT");
+  strcpy(hubConfig.pwd ,"IoT@@@VN1@3");
+  strcpy(hubConfig.code ,"9sTwEkrvhe");
+  strcpy(hubConfig.latitude ,"10.8312");
+  strcpy(hubConfig.longitude ,"106.6355");
+  strcpy(hubConfig.macStr ,"5C-CF-7F-0C-3D-CD");
+
+    syncTime();
+    
+   envData.novaPm25 = 10.0;
+   envData.novaPm10 = 20.0;
+   envData.temperature = 25.0;
+   envData.humidity = 45.0;
+   envData.time = now();
+   //printData(&envData);
+   restProperty.sender_pro= sender;
+    restProperty.latitude_pro= lat;
+    restProperty.longitude_pro= longi;
+    restProperty.TEMP_SENSOR_pro= TEMP_SENSOR;
+    restProperty.PM_SENSOR_pro= PM_SENSOR;
+    restProperty.mac_str_pro ="FB-E3-DB-AB-5F-01";
+    //strcpy(restProperty.mac_str_pro ,"FB-E3-DB-AB-5F-01");
+   delay(5000);
 }
 void syncTime(){
+  if (WiFi.status() != WL_CONNECTED) {
+    
+    connectWifi(&hubConfig, ERR_PIN);
+  }
   //get a random server from the pool
   WiFi.hostByName(ntpServerName, timeServerIP);
 
@@ -128,6 +178,7 @@ void syncTime(){
     }
     Serial.println(epoch % 60); // print the second
     setTime(epoch);
+    
   }
 }
 void printDateTime(){
@@ -143,12 +194,20 @@ void printDateTime(){
   Serial.print(':');
   Serial.print(second());
   Serial.println(".000Z");
+  Serial.println(now());
 }
 void loop() {
   
   // wait ten seconds before asking for the time again
   delay(10000);
   printDateTime();
+  envData.time = now();
+  formatDate(envData.time,dateTimeStr );
+  //formatDate(now(),dateTimeStr );
+  Serial.println(dateTimeStr);
+  formatAAVNData(data, &envData,&restProperty);
+   Serial.print("Data: ");
+  Serial.println(data);
 }
 
 // send an NTP request to the time server at the given address
@@ -173,4 +232,5 @@ void sendNTPpacket(IPAddress& address) {
   udp.beginPacket(address, 123); //NTP requests are to port 123
   udp.write(packetBuffer, NTP_PACKET_SIZE);
   udp.endPacket();
+  
 }
