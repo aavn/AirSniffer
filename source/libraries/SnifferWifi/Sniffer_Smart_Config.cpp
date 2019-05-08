@@ -38,7 +38,7 @@ void setupAP(HubConfig* oldConfig) {
   configPage="";
   WiFi.mode(WIFI_STA);
   if (WiFi.status() == WL_CONNECTED) {
-  WiFi.disconnect();
+	WiFi.disconnect();
   }
   delay(100);
   
@@ -276,10 +276,10 @@ void loadConfig(HubConfig* smartConfig){
 }
 void storeConfig(HubConfig* smartConfig){
 	EEPROM.put(0,*smartConfig);
-  EEPROM.commit();
+	EEPROM.commit();
 	delay(50);
 }
-  
+
 /*void clearStoredWifi(){
 	HubConfig * dummy;
   Serial.println("\nclearing wifi config only");

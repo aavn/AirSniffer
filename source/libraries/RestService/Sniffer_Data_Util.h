@@ -9,7 +9,7 @@ struct Environment{
   float novaPm10;
   float temperature;
   float humidity;
-
+  long time;
 };
 
 //void convertAirData(String dataStr);
