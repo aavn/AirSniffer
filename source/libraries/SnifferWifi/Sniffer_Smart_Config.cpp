@@ -7,7 +7,7 @@
 #define NORM_MODE 0
 #define ONBOARDED -1
 
-#define EEPROM_SIZE 256
+#define EEPROM_SIZE 1024
 
 
 //private data
@@ -297,7 +297,7 @@ void storeConfig(HubConfig* smartConfig){
 void clearStoredConfig(){
 	//HubConfig * dummy;
   Serial.println("\nclearing all config data");
-        for (int i = 0; i < 1024; ++i) { 
+        for (int i = 0; i < EEPROM_SIZE; ++i) { 
 			EEPROM.write(i, 0); 
 		}
 

@@ -9,11 +9,11 @@ struct Environment{
   float novaPm10;
   float temperature;
   float humidity;
-  long time;
+  time_t time;
 };
 
 //void convertAirData(String dataStr);
 void formatAAVNData(char * dataStr, Environment * envirData, RestProperty * restProperty);
 void printData(Environment * envirData);
-
+void formatDate(long timeMillis, char * dateStr);
 #endif

@@ -6,7 +6,10 @@ boolean testWifi(int ERR_PIN);
 
 /* Set these to your desired credentials. */
 void connectWifi(HubConfig* smartConfig, int ERR_PIN){
-  
+  Serial.print("ssid: " );
+  Serial.println(smartConfig->ssid);
+  Serial.print("pwd: " );
+  Serial.println(smartConfig->pwd);
       WiFi.mode(WIFI_STA);
       WiFi.begin(smartConfig->ssid, smartConfig->pwd);
       if(testWifi(ERR_PIN)){
