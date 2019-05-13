@@ -328,6 +328,10 @@ void syncTime(){
     connectWifi(&hubConfig, ERR_PIN);
   }
   if (WiFi.status() == WL_CONNECTED) {
+    Serial.println("Starting UDP");
+    udp.begin(localPort);
+    Serial.print("Local port: ");
+    Serial.println(udp.localPort());
     //get a random server from the pool
     WiFi.hostByName(ntpServerName, timeServerIP);
   
