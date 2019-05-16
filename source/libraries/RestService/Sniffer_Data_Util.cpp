@@ -101,8 +101,8 @@ void formatDate(long timeMillis, char * dateStr){
 											 );
 }
 void printData(Environment * envirData){
-  int index=0;
-  index=index+1;
+  //int index=0;
+  //index=index+1;
   Serial.print(index );
   Serial.print(" Nova_PM2.5: ");
   Serial.print(envirData->novaPm25);
@@ -112,5 +112,7 @@ void printData(Environment * envirData){
   Serial.print(envirData->temperature);
   Serial.print(" Humidity: ");
   Serial.print(envirData->humidity);
+  Serial.print(" Time: ");
+  Serial.print(envirData->time);
   Serial.println();
 }

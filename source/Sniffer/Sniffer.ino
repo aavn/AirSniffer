@@ -1,5 +1,5 @@
 
-#define SNIFFER_TEST true //true: running on test server, false: running on production server
+#define SNIFFER_TEST false //true: running on test server, false: running on production server
 
 #if SNIFFER_TEST
   #include <SnifferOTA_staging.h>
@@ -20,6 +20,8 @@
 #include <EEPROM.h>
 
 #include "properties.h"
+///////////////
+//this is for timestamp test
 unsigned int localPort = 2390;      // local port to listen for UDP packets
 
 /* Don't hardwire the IP address or we won't get the benefits of the pool.
@@ -34,6 +36,8 @@ byte packetBuffer[ NTP_PACKET_SIZE]; //buffer to hold incoming and outgoing pack
 
 // A UDP instance to let us send and receive packets over UDP
 WiFiUDP udp;
+//end timestamp
+///////////////////
 SnifferDustSensor dustSensor;
 Environment envData;
 
@@ -56,11 +60,18 @@ bool timeSynced = false;
 int blink_type = LED_NORMAL;
 
 unsigned long lastOTACheck=0;
+
+/////////
+//this is for bulk data test
 #define BULK_CAPACITY 12
 Environment bulkData[BULK_CAPACITY];
 int bulkCount = 0;
-
+//end bulk data
+////////////
 void performOTA();
+
+
+
 void syncTime();
 void sendNTPpacket(IPAddress& address);
 void syncTime();
@@ -161,6 +172,15 @@ void loop() {
             }
 
           } else {
+            //save data for later 
+            if (bulkCount < BULK_CAPACITY){
+              
+              memcpy(&bulkData[bulkCount],&envData, sizeof(envData));
+              bulkCount++;
+              saveBulkData(&bulkData[bulkCount]);
+            }else{
+              
+            }
             blink_type = LED_WIFI_ERROR;
           }
           Serial.println();
@@ -433,8 +453,19 @@ void printDateTime(){
   Serial.println(now());
 }
 void readBulkData(){
-  
+  int index = sizeof(hubConfig) ;
+  index +=  sizeof(bulkCount);
+  EEPROM.get(index,bulkCount);
+  for(int i = 0; i < bulkCount; i++){
+    index +=  i * sizeof(envData);
+    EEPROM.get(index,bulkCount);
+  }
 }
 void saveBulkData(Environment * envRecord){
-  
+  int index = sizeof(hubConfig) ;
+  EEPROM.put(index,bulkCount);
+  index +=  sizeof(bulkCount) + (bulkCount - 1) * sizeof(envData);
+  EEPROM.put(index,* envRecord);
+  EEPROM.commit();
+  delay(50);
 }
