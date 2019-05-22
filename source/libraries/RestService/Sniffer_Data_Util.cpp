@@ -103,7 +103,7 @@ void formatDate(long timeMillis, char * dateStr){
 void printData(Environment * envirData){
   //int index=0;
   //index=index+1;
-  Serial.print(index );
+  //Serial.print(index );
   Serial.print(" Nova_PM2.5: ");
   Serial.print(envirData->novaPm25);
   Serial.print(" Nova_PM10: ");
@@ -115,4 +115,27 @@ void printData(Environment * envirData){
   Serial.print(" Time: ");
   Serial.print(envirData->time);
   Serial.println();
+}
+void addBulkData(BulkData * bulk, Environment * toAdd){
+	bulk->data[bulk->pointer].novaPm25 = toAdd->novaPm25;
+	bulk->data[bulk->pointer].time = toAdd->time;
+	
+	//move pointer to the next available slot
+	bulk->pointer = bulk->pointer + 1;
+	//if pointer exit the capacity, start from 0
+	if (bulk->pointer == BULK_CAPACITY){
+		bulk->pointer = 0;
+	}
+	if (bulk->bulkCount < BULK_CAPACITY){
+		bulk->bulkCount += 1;
+	}
+}
+void printBulkData(BulkData * bulk){
+	char dateTimeStr[25];
+  Serial.println("====");
+  for(int i = 0;  i < bulk->bulkCount; i++){
+    formatDate(bulk->data[i].time,dateTimeStr );
+    Serial.println(dateTimeStr);
+  }
+  Serial.println("====");
 }
