@@ -4,7 +4,7 @@
 language: generic
 branches:
   only:
-    - master
+    - bulk_data
 env:
   global:
     - IDE_VERSION=1.8.1
