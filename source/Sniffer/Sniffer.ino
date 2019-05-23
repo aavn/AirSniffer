@@ -1,5 +1,5 @@
 
-#define SNIFFER_TEST false //true: running on test server, false: running on production server
+#define SNIFFER_TEST true //true: running on test server, false: running on production server
 
 #if SNIFFER_TEST
   #include <SnifferOTA_staging.h>
@@ -11,7 +11,7 @@
 #endif  
 
 #include <dht.h>
-
+#include <SnifferTime.h>
 #include <Sniffer_Smart_Config.h>
 #include <Sniffer_Wifi_Util.h>
 //#include <Sniffer_Rest_Constant.h>
@@ -20,33 +20,13 @@
 #include <EEPROM.h>
 
 #include "properties.h"
-///////////////
-//this is for timestamp test
-unsigned int localPort = 2390;      // local port to listen for UDP packets
 
-/* Don't hardwire the IP address or we won't get the benefits of the pool.
-    Lookup the IP address for the host name instead */
-//IPAddress timeServer(129, 6, 15, 28); // time.nist.gov NTP server
-IPAddress timeServerIP; // time.nist.gov NTP server address
-const char* ntpServerName = "0.asia.pool.ntp.org";
-
-const int NTP_PACKET_SIZE = 48; // NTP time stamp is in the first 48 bytes of the message
-
-byte packetBuffer[ NTP_PACKET_SIZE]; //buffer to hold incoming and outgoing packets
-
-// A UDP instance to let us send and receive packets over UDP
-WiFiUDP udp;
-//end timestamp
-///////////////////
 SnifferDustSensor dustSensor;
 Environment envData;
-
+RestProperty restProperty ;
 HubConfig hubConfig;
 dht DHT;
-
-//char data[50] = {0};
-
-//int i = 0;
+#define BULK_INDEX sizeof(hubConfig)
 int btnVoltage, refVoltage;
 bool led_status = false;
 unsigned long lastCall;
@@ -60,23 +40,25 @@ bool timeSynced = false;
 int blink_type = LED_NORMAL;
 
 unsigned long lastOTACheck=0;
+BulkData bulkData;
 
-/////////
-//this is for bulk data test
-#define BULK_CAPACITY 12
-Environment bulkData[BULK_CAPACITY];
-int bulkCount = 0;
-//end bulk data
-////////////
 void performOTA();
+void initTestConfig(){
+  strcpy(hubConfig.ssid ,"IoT");
+  strcpy(hubConfig.pwd ,"IoT@@@VN1@3");
 
-
-
-void syncTime();
-void sendNTPpacket(IPAddress& address);
-void syncTime();
-void printDateTime();
-
+  #if SNIFFER_TEST 
+  strcpy(hubConfig.code ,"HZU-J6S-GBJ-YNB");
+  strcpy(hubConfig.latitude ," 10.8403283");
+  strcpy(hubConfig.longitude ,"106.6814543");
+  strcpy(hubConfig.macStr ,"34-A2-33-01-5D-3F");
+  #else
+  strcpy(hubConfig.code ,"9sTwEkrvhe");
+  strcpy(hubConfig.latitude ,"10.8312");
+  strcpy(hubConfig.longitude ,"106.6355");
+  strcpy(hubConfig.macStr ,"5C-CF-7F-0C-3D-CD");
+  #endif
+}
 void setup() {
 
   Serial.begin(115200);
@@ -90,6 +72,7 @@ void setup() {
   attachInterrupt(CONFIG_BTN, highInterrupt, FALLING);
 
   initSnifferConfig(&hubConfig);
+  initTestConfig();
   printConfig(&hubConfig);
   
   if (isConfigMode(hubConfig.mode)) {
@@ -98,8 +81,13 @@ void setup() {
   } else {
     performOTA();
     dustSensor.begin(NOVA_RX, NOVA_TX);
-    syncTime();
+    performSyncTime();
     printDateTime();
+    Serial.println("Loading bulk data");
+    loadBulkData(&bulkData,BULK_INDEX);
+    updateTimestamp(&bulkData);
+    printBulkData(&bulkData);
+    
   }
   lastCall = millis();
   lastReadCall = millis();
@@ -125,27 +113,23 @@ void loop() {
       handleSmartConfigClient();
       fastBlinkForConfiguration();
     } else {
-      performOTA();
+      
       if (((millis() - lastReadCall) > 600000) || isPowerOn || (millis() < lastReadCall)) {
+        performOTA();
         isPowerOn = false;
         lastReadCall = millis();
         turnLedOn();
-        readSnifferData();
-        if(!timeSynced){
-          syncTime();
-          printDateTime();
-        }
-        if(timeSynced){
-          envData.time = now();
-        }else{
-          envData.time = 0;
-        }
         //for testing purpose
-        /*envData.novaPm25 = 10.0;
-         envData.novaPm10 = 20.0;
-         envData.temperature = 25.0;
-         envData.humidity = 45.0;
-         */
+        //readSnifferData();
+        mockTestData(&envData);
+        if(!isSystemTimeSynced()){
+          performSyncTime();
+          printDateTime();
+          updateTimestamp(&bulkData);
+        }
+        
+        envData.time = now();
+        
         if (isValidAirData(envData)) {
           turnLedOn();
           if (WiFi.status() != WL_CONNECTED) {
@@ -154,7 +138,7 @@ void loop() {
 
           if (WiFi.status() == WL_CONNECTED) {
 
-            RestProperty restProperty = readRestfulConfig();
+            readRestfulConfig();
             #if SNIFFER_TEST
             bool ok = saveData_staging(&envData, &restProperty);
             #else
@@ -163,24 +147,21 @@ void loop() {
             #endif
             Serial.print("Save data:");
             Serial.println(ok);
-            WiFi.disconnect();
+            
+            
             if (ok) {
               blink_type = LED_NORMAL; //everything ok, no blink
-
+              sendBulkData();
             } else {
+              addBulkData(&bulkData, &envData);
+              saveBulkData(&bulkData,BULK_INDEX);
               blink_type = LED_SAVE_DATA_ERROR;
             }
-
+            WiFi.disconnect();
           } else {
             //save data for later 
-            if (bulkCount < BULK_CAPACITY){
-              
-              memcpy(&bulkData[bulkCount],&envData, sizeof(envData));
-              bulkCount++;
-              saveBulkData(&bulkData[bulkCount]);
-            }else{
-              
-            }
+            addBulkData(&bulkData, &envData);
+            saveBulkData(&bulkData,BULK_INDEX);
             blink_type = LED_WIFI_ERROR;
           }
           Serial.println();
@@ -194,8 +175,8 @@ void loop() {
   } //not restart
 } //loop
 
-RestProperty readRestfulConfig() {
-  RestProperty restProperty;
+void readRestfulConfig() {
+  
   restProperty.sender_pro = hubConfig.code;
   restProperty.latitude_pro = hubConfig.latitude;
   restProperty.longitude_pro = hubConfig.longitude;
@@ -203,7 +184,7 @@ RestProperty readRestfulConfig() {
   restProperty.PM_SENSOR_pro = PM_SENSOR;
   restProperty.mac_str_pro = hubConfig.macStr;
   
-  return restProperty;
+  
 }
 
 void showSnifferStatus() {
@@ -342,130 +323,49 @@ void performOTA(){
     }
   
 }
-void syncTime(){
+
+void updateTimestamp(BulkData * bulk){
+    for (int i = 0; i < bulk->bulkCount;i++){
+      updateTimestamp(&bulk->data[i].time);
+    }
+}
+void performSyncTime(){
   if (WiFi.status() != WL_CONNECTED) {
     
     connectWifi(&hubConfig, ERR_PIN);
   }
-  if (WiFi.status() == WL_CONNECTED) {
-    Serial.println("Starting UDP");
-    udp.begin(localPort);
-    Serial.print("Local port: ");
-    Serial.println(udp.localPort());
-    //get a random server from the pool
-    WiFi.hostByName(ntpServerName, timeServerIP);
-  
-    sendNTPpacket(timeServerIP); // send an NTP packet to a time server
-    // wait to see if a reply is available
-    delay(3000);
-  
-    int cb = udp.parsePacket();
-    if (!cb) {
-      Serial.println("no packet yet");
-    } else {
-      Serial.print("packet received, length=");
-      Serial.println(cb);
-      // We've received a packet, read the data from it
-      udp.read(packetBuffer, NTP_PACKET_SIZE); // read the packet into the buffer
-  
-      //the timestamp starts at byte 40 of the received packet and is four bytes,
-      // or two words, long. First, esxtract the two words:
-  
-      unsigned long highWord = word(packetBuffer[40], packetBuffer[41]);
-      unsigned long lowWord = word(packetBuffer[42], packetBuffer[43]);
-      // combine the four bytes (two words) into a long integer
-      // this is NTP time (seconds since Jan 1 1900):
-      unsigned long secsSince1900 = highWord << 16 | lowWord;
-      Serial.print("Seconds since Jan 1 1900 = ");
-      Serial.println(secsSince1900);
-  
-      // now convert NTP time into everyday time:
-      Serial.print("Unix time = ");
-      // Unix time starts on Jan 1 1970. In seconds, that's 2208988800:
-      const unsigned long seventyYears = 2208988800UL;
-      // subtract seventy years:
-      unsigned long epoch = secsSince1900 - seventyYears;
-      // print Unix time:
-      Serial.println(epoch);
-  
-  
-      // print the hour, minute and second:
-      Serial.print("The UTC time is ");       // UTC is the time at Greenwich Meridian (GMT)
-      Serial.print((epoch  % 86400L) / 3600); // print the hour (86400 equals secs per day)
-      Serial.print(':');
-      if (((epoch % 3600) / 60) < 10) {
-        // In the first 10 minutes of each hour, we'll want a leading '0'
-        Serial.print('0');
+  syncSystemTime();
+}
+void sendBulkData(){
+  Serial.print("Send bulk data");
+  bool sent = false;
+  for(int i = bulkData.bulkCount - 1; i >= 0; i--){
+    //dont flood the server
+    delay(10000);
+    #if SNIFFER_TEST
+    sent = saveData_staging(&bulkData.data[i], &restProperty);
+    #else
+    sent = saveData(&bulkData.data[i], &restProperty);
+    #endif
+    Serial.print("Save data:");
+    Serial.println(sent);
+    if (sent){
+      //update bulk data record
+      if(bulkData.pointer == i){
+        bulkData.pointer -= 1;
       }
-      Serial.print((epoch  % 3600) / 60); // print the minute (3600 equals secs per minute)
-      Serial.print(':');
-      if ((epoch % 60) < 10) {
-        // In the first 10 seconds of each minute, we'll want a leading '0'
-        Serial.print('0');
-      }
-      Serial.println(epoch % 60); // print the second
-      setTime(epoch);
-      timeSynced = true;
+      bulkData.bulkCount -= 1;
+    }else{
+      //no need to go further
+      break;
     }
-  }else{
-    Serial.print("Cannot connect time server!");
   }
+  saveBulkData(&bulkData,BULK_INDEX);
+  Serial.println("Finish sending bulk data!!");
 }
-// send an NTP request to the time server at the given address
-void sendNTPpacket(IPAddress& address) {
-  Serial.println("sending NTP packet...");
-  // set all bytes in the buffer to 0
-  memset(packetBuffer, 0, NTP_PACKET_SIZE);
-  // Initialize values needed to form NTP request
-  // (see URL above for details on the packets)
-  packetBuffer[0] = 0b11100011;   // LI, Version, Mode
-  packetBuffer[1] = 0;     // Stratum, or type of clock
-  packetBuffer[2] = 6;     // Polling Interval
-  packetBuffer[3] = 0xEC;  // Peer Clock Precision
-  // 8 bytes of zero for Root Delay & Root Dispersion
-  packetBuffer[12]  = 49;
-  packetBuffer[13]  = 0x4E;
-  packetBuffer[14]  = 49;
-  packetBuffer[15]  = 52;
-
-  // all NTP fields have been given values, now
-  // you can send a packet requesting a timestamp:
-  udp.beginPacket(address, 123); //NTP requests are to port 123
-  udp.write(packetBuffer, NTP_PACKET_SIZE);
-  udp.endPacket();
-  Serial.println("Finish sending NTP packet...");
-}
-
-
-void printDateTime(){
-  Serial.print(year());
-  Serial.print('-');
-  Serial.print(month());
-  Serial.print('-');
-  Serial.print(day());
-  Serial.print('T');
-  Serial.print(hour());
-  Serial.print(':');
-  Serial.print(minute());
-  Serial.print(':');
-  Serial.print(second());
-  Serial.println(".000Z");
-  Serial.println(now());
-}
-void readBulkData(){
-  int index = sizeof(hubConfig) ;
-  index +=  sizeof(bulkCount);
-  EEPROM.get(index,bulkCount);
-  for(int i = 0; i < bulkCount; i++){
-    index +=  i * sizeof(envData);
-    EEPROM.get(index,bulkCount);
-  }
-}
-void saveBulkData(Environment * envRecord){
-  int index = sizeof(hubConfig) ;
-  EEPROM.put(index,bulkCount);
-  index +=  sizeof(bulkCount) + (bulkCount - 1) * sizeof(envData);
-  EEPROM.put(index,* envRecord);
-  EEPROM.commit();
-  delay(50);
+void mockTestData(Environment * envData){
+  envData->novaPm25 = 3+0.1*bulkData.bulkCount;
+  envData->novaPm10 = 10+0.1*bulkData.bulkCount;
+  envData->temperature = 25+0.1*bulkData.bulkCount;
+  envData->humidity = 55+0.1*bulkData.bulkCount;
 }

@@ -2,7 +2,7 @@
 #include <WiFiUdp.h>
 #include <TimeLib.h>
 
-#include <Sniffer_Wifi_Util.h>
+
 unsigned int localPort = 2390;      // local port to listen for UDP packets
 
 /* Don't hardwire the IP address or we won't get the benefits of the pool.
@@ -14,18 +14,14 @@ const char* ntpServerName = "0.asia.pool.ntp.org";
 const int NTP_PACKET_SIZE = 48; // NTP time stamp is in the first 48 bytes of the message
 
 byte packetBuffer[ NTP_PACKET_SIZE]; //buffer to hold incoming and outgoing packets
+//in seconds between MCU timestamp and ntp server timestamp 
+//at the moment it synced
 time_t timeGap = 0;
 // A UDP instance to let us send and receive packets over UDP
 WiFiUDP udp;
 
-#define ERR_PIN D2  //GPO14
-bool timeSynced = false;
-
-bool syncTime(HubConfig* smartConfig){
-  if (WiFi.status() != WL_CONNECTED) {
-    
-    connectWifi(smartConfig, ERR_PIN);
-  }
+void syncSystemTime(){
+  
   if (WiFi.status() == WL_CONNECTED) {
     Serial.println("Starting UDP");
     udp.begin(localPort);
@@ -85,13 +81,12 @@ bool syncTime(HubConfig* smartConfig){
       Serial.println(epoch % 60); // print the second
       timeGap = epoch - now();
       setTime(epoch);
-      timeSynced = true;
     }
   }else{
     Serial.print("Cannot connect time server!");
     
   }
-  return timeSynced;
+  
 }
 // send an NTP request to the time server at the given address
 void sendNTPpacket(IPAddress& address) {
@@ -119,4 +114,33 @@ void sendNTPpacket(IPAddress& address) {
 }
 time_t getTimeGap(){
   return timeGap;
+}
+/*bool isTimeSynced(long timeSeconds){
+	return year(timeSeconds) != ANCIENT_TIME;
+		
+}
+bool isSystemTimeSynced(){
+	return systemTimeSynced;
+}*/
+void printDateTime(){
+  Serial.print(year());
+  Serial.print('-');
+  Serial.print(month());
+  Serial.print('-');
+  Serial.print(day());
+  Serial.print('T');
+  Serial.print(hour());
+  Serial.print(':');
+  Serial.print(minute());
+  Serial.print(':');
+  Serial.print(second());
+  Serial.println(".000Z");
+  Serial.println(now());
+}
+void updateTimestamp(time_t * timeSeconds){
+	if(isSystemTimeSynced()){
+	  if(!isTimeSynced(*timeSeconds)){
+		*timeSeconds += getTimeGap();
+	  }
+  }
 }

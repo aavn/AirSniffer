@@ -5,10 +5,14 @@
 #include <TimeLib.h>
 #include <Sniffer_Smart_Config.h>
 
+#include <Sniffer_Wifi_Util.h>
 
+#define ERR_PIN D4
 
 BulkData bulkData;
 HubConfig hubConfig;
+Environment envData;
+#define BULK_INDEX sizeof(hubConfig)
 void setup() {
     Serial.begin(115200);
   Serial.println();
@@ -16,45 +20,23 @@ void setup() {
   // put your setup code here, to run once:
   initSnifferConfig(&hubConfig);
   initTestConfig();
-  
-  
+  performSyncTime();
+  Serial.println("Mocking data from the past");
+  Serial.println("Loading bulk data");
+  loadBulkData(&bulkData,BULK_INDEX);
+  printBulkData(&bulkData);
+  Serial.println("Filling more data");
   unsigned long curTime = now();
-  for(bulkData.pointer = 0;  bulkData.pointer < 5; bulkData.pointer++){
-    bulkData.data[bulkData.pointer].time = curTime;
-    curTime += 600;
-    
+  for(int i = 0; i < 12; i++){
+    envData.time = curTime;
+    curTime -= 600;
+    addBulkData(&bulkData, &envData);
   }
-  bulkData.bulkCount = 5;
+  
   printBulkData(&bulkData);
-  bulkData.timeSynced = syncTime(&hubConfig);
-  Serial.println("Updating timestamp");
-  //curTime = now();
-  for(bulkData.pointer = 0;  bulkData.pointer < bulkData.bulkCount; bulkData.pointer++){
-    //bulkData.data[i].time = curTime;
-    //curTime += 600;
-    bulkData.data[bulkData.pointer].time += getTimeGap();
-    curTime = bulkData.data[bulkData.pointer].time;
-  }
-  printBulkData(&bulkData);;
-  Serial.println("Filling more data");
-  //curTime = now();
-  for(bulkData.pointer; bulkData.pointer < BULK_CAPACITY;bulkData.pointer++){
-    bulkData.data[bulkData.pointer].time = curTime;
-    curTime += 600;
-    bulkData.bulkCount ++;
-  }
-  printBulkData(&bulkData);
-  Serial.println("Filling more data");
-  //curTime = now();
-  if(bulkData.pointer <= BULK_CAPACITY){
-    bulkData.pointer = 0;
-  }
-  for(bulkData.pointer; bulkData.pointer < 5;bulkData.pointer++){
-    bulkData.data[bulkData.pointer].time = curTime;
-    curTime += 600;
-    
-  }
-  printBulkData(&bulkData);
+  
+  saveBulkData(&bulkData,BULK_INDEX);
+  
 }
 
 void loop() {
@@ -69,4 +51,27 @@ void initTestConfig(){
   strcpy(hubConfig.latitude ,"10.8312");
   strcpy(hubConfig.longitude ,"106.6355");
   strcpy(hubConfig.macStr ,"5C-CF-7F-0C-3D-CD");
+}
+/*void saveBulkData(BulkData * bulk){
+  int index = sizeof (hubConfig);
+  EEPROM.put(index,*bulk);
+  EEPROM.commit();
+  delay(50);
+}
+void loadBulkData(BulkData * bulk){
+  int index = sizeof (hubConfig);
+  EEPROM.get(index,*bulk);
+  
+  if (bulk->bulkCount > BULK_CAPACITY || bulk->bulkCount < 0){
+    bulk->bulkCount = 0;
+    bulk->pointer = 0;
+  }
+}*/
+
+void performSyncTime(){
+  if (WiFi.status() != WL_CONNECTED) {
+    
+    connectWifi(&hubConfig, ERR_PIN);
+  }
+  syncSystemTime();
 }

@@ -3,7 +3,7 @@
 #include <ArduinoJson.h>
 #include <Sniffer_Rest_Property.h>
 #include <TimeLib.h>
-
+#include <EEPROM.h>
 
 void formatAAVNData(char * dataStr, Environment * envirData, RestProperty * restProperty){
   // put your setup code here, to run once:
@@ -91,15 +91,7 @@ void formatAAVNData(char * dataStr, Environment * envirData, RestProperty * rest
   
   serializeJson(doc, dataStr,DATA_SIZE);
 }
-void formatDate(long timeMillis, char * dateStr){
-	sprintf(dateStr, "%i-%i-%iT%i:%i:%i.000Z", year(timeMillis)
-											 , month(timeMillis)
-											 , day(timeMillis)
-											 , hour(timeMillis)
-											 , minute(timeMillis)
-											 , second(timeMillis)
-											 );
-}
+
 void printData(Environment * envirData){
   //int index=0;
   //index=index+1;
@@ -133,9 +125,34 @@ void addBulkData(BulkData * bulk, Environment * toAdd){
 void printBulkData(BulkData * bulk){
 	char dateTimeStr[25];
   Serial.println("====");
+  Serial.print("Count: " );
+  Serial.println(bulk->bulkCount);
   for(int i = 0;  i < bulk->bulkCount; i++){
     formatDate(bulk->data[i].time,dateTimeStr );
     Serial.println(dateTimeStr);
   }
   Serial.println("====");
 }
+void formatDate(long timeSeconds, char * dateStr){
+	sprintf(dateStr, "%i-%i-%iT%i:%i:%i.000Z", year(timeSeconds)
+											 , month(timeSeconds)
+											 , day(timeSeconds)
+											 , hour(timeSeconds)
+											 , minute(timeSeconds)
+											 , second(timeSeconds)
+											 );
+}
+void saveBulkData(BulkData * bulk, int index){
+  EEPROM.put(index,*bulk);
+  EEPROM.commit();
+  delay(50);
+}
+void loadBulkData(BulkData * bulk, int index){
+  EEPROM.get(index,*bulk);
+  
+  if (bulk->bulkCount > BULK_CAPACITY || bulk->bulkCount < 0){
+    bulk->bulkCount = 0;
+    bulk->pointer = 0;
+  }
+}
+	

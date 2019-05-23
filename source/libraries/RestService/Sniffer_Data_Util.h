@@ -15,13 +15,14 @@ struct Environment{
 typedef struct{
   Environment data[BULK_CAPACITY];
   int bulkCount;
-  bool timeSynced;
   int pointer;
 }BulkData;
 //void convertAirData(String dataStr);
 void formatAAVNData(char * dataStr, Environment * envirData, RestProperty * restProperty);
 void printData(Environment * envirData);
-void formatDate(long timeMillis, char * dateStr);
+void formatDate(long timeSeconds, char * dateStr);
 void addBulkData(BulkData * bulk, Environment * toAdd);
 void printBulkData(BulkData * bulk);
+void saveBulkData(BulkData * bulk, int index);
+void loadBulkData(BulkData * bulk, int index);
 #endif
