@@ -1,5 +1,5 @@
 
-#define SNIFFER_TEST true //true: running on test server, false: running on production server
+#define SNIFFER_TEST false //true: running on test server, false: running on production server
 
 #if SNIFFER_TEST
   #include <SnifferOTA_staging.h>
@@ -43,27 +43,7 @@ unsigned long lastOTACheck=0;
 BulkData bulkData;
 
 void performOTA();
-void initTestConfig(){
-  strcpy(hubConfig.ssid ,"IoT");
-  strcpy(hubConfig.pwd ,"IoT@@@VN1@3");
 
-  #if SNIFFER_TEST 
-  /*strcpy(hubConfig.code ,"ANfiBkFcjj");
-  strcpy(hubConfig.latitude ," 10.04925");
-  strcpy(hubConfig.longitude ,"105.77619");
-  strcpy(hubConfig.macStr ,"10-00-00-00-00-00");*/
-  strcpy(hubConfig.code ,"9sTwEkrvhe");
-  strcpy(hubConfig.latitude ,"10.8312");
-  strcpy(hubConfig.longitude ,"106.6355");
-  strcpy(hubConfig.macStr ,"5C-CF-7F-0C-3D-CD");
-  #else
-  
-  strcpy(hubConfig.code ,"9sTwEkrvhe");
-  strcpy(hubConfig.latitude ,"10.8312");
-  strcpy(hubConfig.longitude ,"106.6355");
-  strcpy(hubConfig.macStr ,"5C-CF-7F-0C-3D-CD");
-  #endif
-}
 void setup() {
 
   Serial.begin(115200);
@@ -77,7 +57,7 @@ void setup() {
   attachInterrupt(CONFIG_BTN, highInterrupt, FALLING);
 
   initSnifferConfig(&hubConfig);
-  initTestConfig();
+  
   printConfig(&hubConfig);
   
   if (isConfigMode(hubConfig.mode)) {
@@ -125,8 +105,8 @@ void loop() {
         lastReadCall = millis();
         turnLedOn();
         //for testing purpose
-        //readSnifferData();
-        mockTestData(&envData);
+        readSnifferData();
+        
         if(!isSystemTimeSynced()){
           performSyncTime();
           printDateTime();
@@ -367,10 +347,4 @@ void sendBulkData(){
   }
   saveBulkData(&bulkData,BULK_INDEX);
   Serial.println("Finish sending bulk data!!");
-}
-void mockTestData(Environment * envData){
-  envData->novaPm25 = 3+0.1*bulkData.bulkCount;
-  envData->novaPm10 = 10+0.1*bulkData.bulkCount;
-  envData->temperature = 25+0.1*bulkData.bulkCount;
-  envData->humidity = 55+0.1*bulkData.bulkCount;
 }
