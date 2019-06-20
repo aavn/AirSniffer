@@ -5,9 +5,10 @@
 #include <Sniffer_Dust_Sensor.h>
 
 #if SNIFFER_TEST
-  #define VERSION "0.19.15_rc" //release build
+
+  #define VERSION "0.19.18_rc" //release build
 #else 
-  #define VERSION "0.19.14"
+  #define VERSION "0.19.17"
 #endif
 
 #define TEMP_SENSOR "DHT11"

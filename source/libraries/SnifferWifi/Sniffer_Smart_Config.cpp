@@ -7,7 +7,7 @@
 #define NORM_MODE 0
 #define ONBOARDED -1
 
-#define EEPROM_SIZE 256
+#define EEPROM_SIZE 1024
 
 
 //private data
@@ -38,7 +38,7 @@ void setupAP(HubConfig* oldConfig) {
   configPage="";
   WiFi.mode(WIFI_STA);
   if (WiFi.status() == WL_CONNECTED) {
-  WiFi.disconnect();
+	WiFi.disconnect();
   }
   delay(100);
   
@@ -273,13 +273,16 @@ void handleRoot() {
 
 void loadConfig(HubConfig* smartConfig){
 	EEPROM.get(0,*smartConfig);
+	if(strlen(smartConfig->macStr) == 0){
+		stpcpy(smartConfig->macStr,WiFi.macAddress().c_str());
+	}
 }
 void storeConfig(HubConfig* smartConfig){
 	EEPROM.put(0,*smartConfig);
-  EEPROM.commit();
-	delay(50);
+	EEPROM.commit();
+	delay(100);
 }
-  
+
 /*void clearStoredWifi(){
 	HubConfig * dummy;
   Serial.println("\nclearing wifi config only");
@@ -297,12 +300,12 @@ void storeConfig(HubConfig* smartConfig){
 void clearStoredConfig(){
 	//HubConfig * dummy;
   Serial.println("\nclearing all config data");
-        for (int i = 0; i < 1024; ++i) { 
+        for (int i = 0; i < EEPROM_SIZE; ++i) { 
 			EEPROM.write(i, 0); 
 		}
 
   EEPROM.commit();
-  //delay(100);
+  delay(100);
 }
 
 void handleSmartConfigClient(){

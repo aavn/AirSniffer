@@ -48,4 +48,5 @@ struct RestProperty{
 
 
 #define CUBIC_INDEX 0
+#define DATA_SIZE 600
 #endif

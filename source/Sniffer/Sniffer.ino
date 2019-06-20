@@ -11,27 +11,28 @@
 #endif  
 
 #include <dht.h>
-
+#include <SnifferTime.h>
 #include <Sniffer_Smart_Config.h>
 #include <Sniffer_Wifi_Util.h>
 //#include <Sniffer_Rest_Constant.h>
+#include <WiFiUdp.h>
+#include <TimeLib.h>
+#include <EEPROM.h>
 
 #include "properties.h"
 
 SnifferDustSensor dustSensor;
 Environment envData;
-
+RestProperty restProperty ;
 HubConfig hubConfig;
 dht DHT;
-
-//char data[50] = {0};
-
-int i = 0;
+#define BULK_INDEX sizeof(hubConfig)
 int btnVoltage, refVoltage;
 bool led_status = false;
 unsigned long lastCall;
 unsigned long lastReadCall;
 bool isPowerOn = true;
+bool timeSynced = false;
 #define LED_NORMAL 0
 #define LED_WIFI_ERROR 1
 #define LED_SAVE_DATA_ERROR 2
@@ -39,6 +40,8 @@ bool isPowerOn = true;
 int blink_type = LED_NORMAL;
 
 unsigned long lastOTACheck=0;
+BulkData bulkData;
+
 void performOTA();
 
 void setup() {
@@ -54,6 +57,7 @@ void setup() {
   attachInterrupt(CONFIG_BTN, highInterrupt, FALLING);
 
   initSnifferConfig(&hubConfig);
+  
   printConfig(&hubConfig);
   
   if (isConfigMode(hubConfig.mode)) {
@@ -62,6 +66,13 @@ void setup() {
   } else {
     performOTA();
     dustSensor.begin(NOVA_RX, NOVA_TX);
+    performSyncTime();
+    printDateTime();
+    Serial.println("Loading bulk data");
+    loadBulkData(&bulkData,BULK_INDEX);
+    updateTimestamp(&bulkData);
+    printBulkData(&bulkData);
+    
   }
   lastCall = millis();
   lastReadCall = millis();
@@ -87,18 +98,23 @@ void loop() {
       handleSmartConfigClient();
       fastBlinkForConfiguration();
     } else {
-      performOTA();
+      
       if (((millis() - lastReadCall) > 600000) || isPowerOn || (millis() < lastReadCall)) {
+        performOTA();
         isPowerOn = false;
         lastReadCall = millis();
         turnLedOn();
-        readSnifferData();
         //for testing purpose
-        /*envData.novaPm25 = 10.0;
-         envData.novaPm10 = 20.0;
-         envData.temperature = 25.0;
-         envData.humidity = 45.0;
-         */
+        readSnifferData();
+        
+        if(!isSystemTimeSynced()){
+          performSyncTime();
+          printDateTime();
+          updateTimestamp(&bulkData);
+        }
+        
+        envData.time = now();
+        
         if (isValidAirData(envData)) {
           turnLedOn();
           if (WiFi.status() != WL_CONNECTED) {
@@ -107,7 +123,7 @@ void loop() {
 
           if (WiFi.status() == WL_CONNECTED) {
 
-            RestProperty restProperty = readRestfulConfig();
+            readRestfulConfig();
             #if SNIFFER_TEST
             bool ok = saveData_staging(&envData, &restProperty);
             #else
@@ -116,15 +132,21 @@ void loop() {
             #endif
             Serial.print("Save data:");
             Serial.println(ok);
-            WiFi.disconnect();
+            
+            
             if (ok) {
               blink_type = LED_NORMAL; //everything ok, no blink
-
+              sendBulkData();
             } else {
+              addBulkData(&bulkData, &envData);
+              saveBulkData(&bulkData,BULK_INDEX);
               blink_type = LED_SAVE_DATA_ERROR;
             }
-
+            WiFi.disconnect();
           } else {
+            //save data for later 
+            addBulkData(&bulkData, &envData);
+            saveBulkData(&bulkData,BULK_INDEX);
             blink_type = LED_WIFI_ERROR;
           }
           Serial.println();
@@ -138,8 +160,8 @@ void loop() {
   } //not restart
 } //loop
 
-RestProperty readRestfulConfig() {
-  RestProperty restProperty;
+void readRestfulConfig() {
+  
   restProperty.sender_pro = hubConfig.code;
   restProperty.latitude_pro = hubConfig.latitude;
   restProperty.longitude_pro = hubConfig.longitude;
@@ -147,7 +169,7 @@ RestProperty readRestfulConfig() {
   restProperty.PM_SENSOR_pro = PM_SENSOR;
   restProperty.mac_str_pro = hubConfig.macStr;
   
-  return restProperty;
+  
 }
 
 void showSnifferStatus() {
@@ -285,4 +307,44 @@ void performOTA(){
       Serial.println("My owner want to handle upgrade manually!");
     }
   
+}
+
+void updateTimestamp(BulkData * bulk){
+    for (int i = 0; i < bulk->bulkCount;i++){
+      updateTimestamp(&bulk->data[i].time);
+    }
+}
+void performSyncTime(){
+  if (WiFi.status() != WL_CONNECTED) {
+    
+    connectWifi(&hubConfig, ERR_PIN);
+  }
+  syncSystemTime();
+}
+void sendBulkData(){
+  Serial.print("Send bulk data");
+  bool sent = false;
+  for(int i = bulkData.bulkCount - 1; i >= 0; i--){
+    //dont flood the server
+    delay(10000);
+    #if SNIFFER_TEST
+    sent = saveData_staging(&bulkData.data[i], &restProperty);
+    #else
+    sent = saveData(&bulkData.data[i], &restProperty);
+    #endif
+    Serial.print("Save data:");
+    Serial.println(sent);
+    if (sent){
+      //update bulk data record
+      if(bulkData.pointer == i){
+        bulkData.pointer -= 1;
+      }
+      bulkData.bulkCount -= 1;
+    }else{
+      //no need to go further
+      break;
+    }
+  }
+  saveBulkData(&bulkData,BULK_INDEX);
+  Serial.println("Finish sending bulk data!!");
 }
