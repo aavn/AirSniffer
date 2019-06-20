@@ -48,11 +48,16 @@ void initTestConfig(){
   strcpy(hubConfig.pwd ,"IoT@@@VN1@3");
 
   #if SNIFFER_TEST 
-  strcpy(hubConfig.code ,"HZU-J6S-GBJ-YNB");
-  strcpy(hubConfig.latitude ," 10.8403283");
-  strcpy(hubConfig.longitude ,"106.6814543");
-  strcpy(hubConfig.macStr ,"34-A2-33-01-5D-3F");
+  /*strcpy(hubConfig.code ,"ANfiBkFcjj");
+  strcpy(hubConfig.latitude ," 10.04925");
+  strcpy(hubConfig.longitude ,"105.77619");
+  strcpy(hubConfig.macStr ,"10-00-00-00-00-00");*/
+  strcpy(hubConfig.code ,"9sTwEkrvhe");
+  strcpy(hubConfig.latitude ,"10.8312");
+  strcpy(hubConfig.longitude ,"106.6355");
+  strcpy(hubConfig.macStr ,"5C-CF-7F-0C-3D-CD");
   #else
+  
   strcpy(hubConfig.code ,"9sTwEkrvhe");
   strcpy(hubConfig.latitude ,"10.8312");
   strcpy(hubConfig.longitude ,"106.6355");

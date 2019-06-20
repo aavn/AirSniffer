@@ -49,7 +49,7 @@ bool saveData(Environment * envirData, RestProperty * restProperty)
   int waitcount = 0;
   while (!client.available() && waitcount++ < 300) {
       Serial.println(".");
-       delay(100);
+       delay(200);
   }
   String response = "";
   int count = 0;

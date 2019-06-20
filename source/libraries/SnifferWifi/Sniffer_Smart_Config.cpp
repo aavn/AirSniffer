@@ -232,22 +232,22 @@ void handlePwd(){
   String htmlPage ="<html><body><h2>Enter Sniffer Config</h2>";
 
 	htmlPage.concat("<form method='POST' action='/wifi_config/verify'>");
-	htmlPage.concat("<table><tr><td>Wifi</td><td colspan=2><input readonly name='ssid' id='ssid' value='" + decodedStr +"'/></td></tr>");
-	htmlPage.concat("<tr><td>Password</td><td colspan=2><input type='text' name='pwd' id='pwd' /></td></tr>");
+	htmlPage.concat("<table><tr><td>Wifi</td><td colspan=2><input readonly maxlength='36' name='ssid' id='ssid' value='" + decodedStr +"'/></td></tr>");
+	htmlPage.concat("<tr><td>Password</td><td colspan=2><input maxlength='50' type='text' name='pwd' id='pwd' /></td></tr>");
 	htmlPage.concat("<tr><td colspan=3><hr></td></tr>");
 	decodedStr="";
 	decodedStr.concat (_oldConfig->code);
-	htmlPage.concat("<tr><td>Code</td><td colspan=2><input type='text' name='code' id='code' value='" + decodedStr +"'/></td></tr>");
+	htmlPage.concat("<tr><td>Code</td><td colspan=2><input maxlength='16' type='text' name='code' id='code' value='" + decodedStr +"'/></td></tr>");
 	htmlPage.concat("<tr><td rowspan=2><b>GPS</b></td>");
 	decodedStr="";
 	decodedStr.concat (_oldConfig->latitude);
-	htmlPage.concat("<td>Latitude</td><td><input type='text' name='lat' id='lat' value='" + decodedStr +"'/></td></tr>");
+	htmlPage.concat("<td>Latitude</td><td><input maxlength='11' type='text' name='lat' id='lat' value='" + decodedStr +"'/></td></tr>");
 	decodedStr="";
 	decodedStr.concat (_oldConfig->longitude);
-	htmlPage.concat("<tr><td>Longitude</td><td><input type='text' name='long' id='long' value='" + decodedStr +"'/></td></tr>");
+	htmlPage.concat("<tr><td>Longitude</td><td><input maxlength='11' type='text' name='long' id='long' value='" + decodedStr +"'/></td></tr>");
 	decodedStr="";
 	decodedStr.concat (_oldConfig->macStr);
-	htmlPage.concat("<tr><td>MAC</td><td colspan=2><input type='text' name='mac' id='mac' value='" + decodedStr +"'/></td></tr>");
+	htmlPage.concat("<tr><td>MAC</td><td colspan=2><input maxlength='17' type='text' name='mac' id='mac' value='" + decodedStr +"'/></td></tr>");
 	decodedStr="";
 	if(_oldConfig->ota == 1){
 		decodedStr.concat("checked") ;
@@ -273,11 +273,14 @@ void handleRoot() {
 
 void loadConfig(HubConfig* smartConfig){
 	EEPROM.get(0,*smartConfig);
+	if(strlen(smartConfig->macStr) == 0){
+		stpcpy(smartConfig->macStr,WiFi.macAddress().c_str());
+	}
 }
 void storeConfig(HubConfig* smartConfig){
 	EEPROM.put(0,*smartConfig);
 	EEPROM.commit();
-	delay(50);
+	delay(100);
 }
 
 /*void clearStoredWifi(){
@@ -302,7 +305,7 @@ void clearStoredConfig(){
 		}
 
   EEPROM.commit();
-  //delay(100);
+  delay(100);
 }
 
 void handleSmartConfigClient(){
