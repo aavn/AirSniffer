@@ -16,7 +16,7 @@ void formatAAVNData(char * dataStr, Environment * envirData, RestProperty * rest
   
   JsonObject source = doc.createNestedObject(SOURCE_KEY);
   source[SOURCE_ID_KEY] = restProperty->sender_pro;
-  source[MAC_KEY] = restProperty->mac_str_pro;
+  //source[MAC_KEY] = restProperty->mac_str_pro;
   
   JsonObject source_gpsLocation = source.createNestedObject(GPS_KEY);
   source_gpsLocation[LAT_KEY] = restProperty->latitude_pro;

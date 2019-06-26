@@ -14,17 +14,21 @@
 String configPage;
 //String jsonConfig;
 String macAddressJson;
+String listWifiJson;
 ESP8266WebServer server(httpPort);
 int snifferState;
 HubConfig * _oldConfig;
 bool wifiConnected = false;
 
-//private functions
+//private functions to expose APIs
 void handleRoot();
 void handlePwd();
+void handleMAC();
 //void handleConfig();
 void wifiConfigVerify();
 void wifiConfigResult();
+void scanWifi();
+//server function
 void launchWeb(void);
 
 //void clearStoredWifi(void);
@@ -36,6 +40,10 @@ void setupAP(HubConfig* oldConfig) {
   _oldConfig = oldConfig;
   //configPage.reserve(3000);
   configPage="";
+  macAddressJson="{\"macAddress\":\"";
+  macAddressJson.concat(_oldConfig->macStr);
+  macAddressJson.concat("\"}");
+  listWifiJson="[";
   WiFi.mode(WIFI_STA);
   if (WiFi.status() == WL_CONNECTED) {
 	WiFi.disconnect();
@@ -71,7 +79,12 @@ void setupAP(HubConfig* oldConfig) {
       Serial.print(" (");
       Serial.print(WiFi.RSSI(i));
       Serial.print(")");
-      Serial.println((WiFi.encryptionType(i) == ENC_TYPE_NONE)?" ":"*");
+	  
+      Serial.println(WiFi.encryptionType(i));
+	  //Serial.print("Channel: ");
+	  //Serial.println(WiFi.channel(i));
+	  //Serial.print("BSSIDstr: ");
+	  //Serial.println(WiFi.BSSIDstr(i));
       delay(10);
       //configPage.concat("<li><a href='/inputPwd/"+WiFi.SSID(i)+"'>"+WiFi.SSID(i)+"</a></li>");
       configPage.concat("<li><form method='post' action='/inputPwd' class='inline'>");
@@ -79,20 +92,15 @@ void setupAP(HubConfig* oldConfig) {
       configPage.concat("<button type='submit' name='submit_param' value='submit_value' class='link-button'>");
       configPage.concat(WiFi.SSID(i)+"</button></form></li>");
       
-      /*if (i==n-1)
-		jsonConfig.concat("'" + WiFi.SSID(i) + "'");
-	  else
-		jsonConfig.concat("'" + WiFi.SSID(i) + "',");
-		*/
+	  listWifiJson.concat("{\"ssid\":\"" + WiFi.SSID(i) + "\"}");
+      if (i<n-1){
+		listWifiJson.concat(',');
+	  }
+		
      }
      configPage.concat("</ol></div></body></html>");
   }
-  
-  //jsonConfig.concat("],");
-  
-  //jsonConfig.concat("'mac_address':");
-  //jsonConfig.concat("'" + WiFi.macAddress() + "'");
-  //jsonConfig.concat("}");
+  listWifiJson.concat("]");
     
   delay(100);
   WiFi.softAP(smartConfigSSID);
@@ -113,13 +121,19 @@ void launchWeb(void) {
     server.on("/inputPwd",handlePwd);
     server.on("/wifi_config/verify",wifiConfigVerify);
     server.on("/wifi_config/result",wifiConfigResult);
-    //server.on("/config",handleConfig);
+    server.on("/api/sniffer/mac",handleMAC);
+	server.on("/api/sniffer/listWifi",scanWifi);
         
     server.begin();
     Serial.println("Server started");   
 
 }
-
+void handleMAC(void){
+	server.send(200, "text/json",macAddressJson );
+}
+void scanWifi(void){
+	server.send(200, "text/json", listWifiJson);
+}
 void wifiConfigVerify(){
 	HubConfig smartConfig;
 
@@ -130,7 +144,7 @@ void wifiConfigVerify(){
   	verifyPage.concat("</body></html>");
   	
   	
-  	String ssid, pwd, code, latitude, longitude, macStr;
+  	String ssid, pwd, code, latitude, longitude;
     Serial.println("Config Args: ");
     for(int i = 0; i < server.args(); i++){
       Serial.print(server.argName(i));
@@ -150,7 +164,7 @@ void wifiConfigVerify(){
 	code = server.arg("code");
     latitude = server.arg("lat");
 	longitude = server.arg("long");
-    macStr = server.arg("mac");
+    
 	if(server.hasArg("ota")){
 		Serial.println("Having OTA");
 		smartConfig.ota = 1;
@@ -181,7 +195,7 @@ void wifiConfigVerify(){
 		strcpy(smartConfig.code,code.c_str());
 	    strcpy(smartConfig.latitude,latitude.c_str());
 		strcpy(smartConfig.longitude,longitude.c_str());
-	    strcpy(smartConfig.macStr,macStr.c_str());
+	    strcpy(smartConfig.macStr,_oldConfig->macStr);
 
 	    smartConfig.mode = NORM_MODE;
 	    storeConfig(&smartConfig);
@@ -205,10 +219,11 @@ void wifiConfigResult(){
   	htmlStr.concat("</body></html>");
 
 	if (wifiConnected) {
+		snifferState = ONBOARDED;
 		Serial.println("Wifi connected");
 	    server.send(200, "text/html", htmlStr);
 	    delay(500);
-		snifferState = ONBOARDED;
+		
 		WiFi.mode(WIFI_STA);
 		
 	} else {
@@ -245,9 +260,6 @@ void handlePwd(){
 	decodedStr="";
 	decodedStr.concat (_oldConfig->longitude);
 	htmlPage.concat("<tr><td>Longitude</td><td><input maxlength='11' type='text' name='long' id='long' value='" + decodedStr +"'/></td></tr>");
-	decodedStr="";
-	decodedStr.concat (_oldConfig->macStr);
-	htmlPage.concat("<tr><td>MAC</td><td colspan=2><input maxlength='17' type='text' name='mac' id='mac' value='" + decodedStr +"'/></td></tr>");
 	decodedStr="";
 	if(_oldConfig->ota == 1){
 		decodedStr.concat("checked") ;
@@ -297,7 +309,7 @@ void storeConfig(HubConfig* smartConfig){
   Serial.print("Clear Wifi size: ");
   Serial.println(i);
 }*/
-void clearStoredConfig(){
+void clearStoredEEPROM(){
 	//HubConfig * dummy;
   Serial.println("\nclearing all config data");
         for (int i = 0; i < EEPROM_SIZE; ++i) { 

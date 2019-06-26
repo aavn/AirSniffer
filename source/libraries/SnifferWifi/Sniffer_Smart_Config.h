@@ -30,5 +30,5 @@ void prepareSmartConfig(HubConfig* smartConfig);
 void printConfig(HubConfig* smartConfig);
 bool needRestart();
 
-void clearStoredConfig(void);
+void clearStoredEEPROM(void);
 #endif
