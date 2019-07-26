@@ -54,6 +54,8 @@ void setup() {
   pinMode(CONFIG_BTN, INPUT_PULLUP);
   pinMode(ERR_PIN, OUTPUT);
   pinMode(REF_PIN, OUTPUT);
+  pinMode(DONE_PIN, OUTPUT);
+  digitalWrite(DONE_PIN, LOW);
   attachInterrupt(CONFIG_BTN, highInterrupt, FALLING);
 
   initSnifferConfig(&hubConfig);
@@ -122,7 +124,7 @@ void loop() {
           }
 
           if (WiFi.status() == WL_CONNECTED) {
-
+			turnLedOn();
             readRestfulConfig();
             #if SNIFFER_TEST
             bool ok = saveData_staging(&envData, &restProperty);
@@ -154,8 +156,13 @@ void loop() {
           blink_type = LED_READ_SENSOR_ERROR;
         }
       }
-
       showSnifferStatus();
+      for (i=0; i<100; i++) {
+        digitalWrite(DONE_PIN, HIGH);
+        delay(1);
+        digitalWrite(DONE_PIN, LOW);
+        delay(1);
+      }
     }
   } //not restart
 } //loop

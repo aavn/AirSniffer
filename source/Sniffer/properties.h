@@ -27,7 +27,7 @@ extern dht DHT;
 #define NOVA_RX D7  //GPO13
 #define NOVA_TX D6  //GPO12
 #define REF_PIN D0  //GPO16
-
+#define DONE_PIN D1 
 //#define SENSOR_ERR 3
 
 #endif
