@@ -12,6 +12,7 @@
 
 //private data
 String configPage;
+String apName;
 //String jsonConfig;
 String macAddressJson;
 String listWifiJson;
@@ -40,9 +41,13 @@ void setupAP(HubConfig* oldConfig) {
   _oldConfig = oldConfig;
   //configPage.reserve(3000);
   configPage="";
+  apName = "";
   macAddressJson="{\"macAddress\":\"";
   macAddressJson.concat(_oldConfig->macStr);
   macAddressJson.concat("\"}");
+  apName.concat(smartConfigSSID);
+  apName.concat('-');
+  apName.concat(_oldConfig->macStr);
   listWifiJson="[";
   WiFi.mode(WIFI_STA);
   if (WiFi.status() == WL_CONNECTED) {
@@ -103,7 +108,7 @@ void setupAP(HubConfig* oldConfig) {
   listWifiJson.concat("]");
     
   delay(100);
-  WiFi.softAP(smartConfigSSID);
+  WiFi.softAP(apName);
   Serial.println("softap");
   Serial.println("");
   launchWeb();
