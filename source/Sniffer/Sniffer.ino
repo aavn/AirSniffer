@@ -124,7 +124,7 @@ void loop() {
           }
 
           if (WiFi.status() == WL_CONNECTED) {
-			turnLedOn();
+			      turnLedOn();
             readRestfulConfig();
             #if SNIFFER_TEST
             bool ok = saveData_staging(&envData, &restProperty);
@@ -157,7 +157,7 @@ void loop() {
         }
       }
       showSnifferStatus();
-      for (i=0; i<100; i++) {
+      for (int i=0; i<100; i++) {
         digitalWrite(DONE_PIN, HIGH);
         delay(1);
         digitalWrite(DONE_PIN, LOW);
