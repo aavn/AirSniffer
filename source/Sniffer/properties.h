@@ -6,9 +6,9 @@
 
 #if SNIFFER_TEST
 
-  #define VERSION "0.19.18_rc" //release build
+  #define VERSION "0.19.19_rc" //release build
 #else 
-  #define VERSION "0.19.17"
+  #define VERSION "0.19.18"
 #endif
 
 #define TEMP_SENSOR "DHT11"
