@@ -12,7 +12,6 @@
 
 //private data
 String configPage;
-String apName;
 //String jsonConfig;
 String macAddressJson;
 String listWifiJson;
@@ -41,13 +40,9 @@ void setupAP(HubConfig* oldConfig) {
   _oldConfig = oldConfig;
   //configPage.reserve(3000);
   configPage="";
-  apName = "";
   macAddressJson="{\"macAddress\":\"";
   macAddressJson.concat(_oldConfig->macStr);
   macAddressJson.concat("\"}");
-  apName.concat(smartConfigSSID);
-  apName.concat('-');
-  apName.concat(_oldConfig->macStr);
   listWifiJson="[";
   WiFi.mode(WIFI_STA);
   if (WiFi.status() == WL_CONNECTED) {
@@ -77,7 +72,14 @@ void setupAP(HubConfig* oldConfig) {
     Serial.println(" networks found");
     for (int i = 0; i < n; ++i)
      {
-      // Print SSID and RSSI for each network found
+      // Print SSID and RSSI for each network found - remove duplicated
+      // It's complicated to use SET or Vector in Arduino C++ then here a work around
+      String node = "name='ssid' value='";
+      node.concat(WiFi.SSID(i));
+      node.concat("'>");
+      if (configPage.indexOf(node) > 0) {
+      	break;
+      }
       Serial.print(i + 1);
       Serial.print(": ");
       Serial.print(WiFi.SSID(i));
@@ -108,7 +110,7 @@ void setupAP(HubConfig* oldConfig) {
   listWifiJson.concat("]");
     
   delay(100);
-  WiFi.softAP(apName);
+  WiFi.softAP(smartConfigSSID);
   Serial.println("softap");
   Serial.println("");
   launchWeb();
