@@ -12,7 +12,7 @@
 
 //private data
 String configPage;
-//String jsonConfig;
+
 String macAddressJson;
 String listWifiJson;
 ESP8266WebServer server(httpPort);
@@ -24,7 +24,7 @@ bool wifiConnected = false;
 void handleRoot();
 void handlePwd();
 void handleMAC();
-//void handleConfig();
+void handleInfo();
 void wifiConfigVerify();
 void wifiConfigResult();
 void scanWifi();
@@ -36,13 +36,15 @@ void launchWeb(void);
 ///////////////////
 
 void setupAP(HubConfig* oldConfig) {
-	Serial.println("Setting up SmartConfig");
+  Serial.println("Setting up SmartConfig");
   _oldConfig = oldConfig;
   //configPage.reserve(3000);
   configPage="";
   macAddressJson="{\"macAddress\":\"";
   macAddressJson.concat(_oldConfig->macStr);
   macAddressJson.concat("\"}");
+  
+  
   listWifiJson="[";
   WiFi.mode(WIFI_STA);
   if (WiFi.status() == WL_CONNECTED) {
@@ -130,12 +132,55 @@ void launchWeb(void) {
     server.on("/wifi_config/result",wifiConfigResult);
     server.on("/api/sniffer/mac",handleMAC);
 	server.on("/api/sniffer/listWifi",scanWifi);
+	server.on("/api/sniffer/info",handleInfo);
         
     server.begin();
     Serial.println("Server started");   
 
 }
+void handleInfo(void){
+	String infoJson = "{\"code\":";
+	if(strlen(_oldConfig->code)>0){
+		infoJson.concat("\"");
+		infoJson.concat(_oldConfig->code );
+		infoJson.concat("\",");
+	}else{
+		
+		infoJson.concat("null,");
+	}
+	infoJson.concat("\"gpsLocation\": {\"latitude\":" );
+	if(strlen(_oldConfig->latitude)>0){
+		infoJson.concat(_oldConfig->latitude );
+		infoJson.concat(",");
+	}else{
+		infoJson.concat("null,");
+	}
+	infoJson.concat("\"longitude\": ");
+	if(strlen(_oldConfig->longitude)>0){
+		infoJson.concat(_oldConfig->longitude );
+		infoJson.concat("},");
+	}else{
+		infoJson.concat("null},");
+	}
+	
+	infoJson.concat("\"macAddress\":");
+	if(strlen(_oldConfig->macStr)>0){
+		infoJson.concat("\"");
+		infoJson.concat(_oldConfig->macStr );
+		infoJson.concat("\",");
+	}else{
+		
+		infoJson.concat("null,");
+	}
+	infoJson.concat("\"ota\": ");
+	infoJson.concat(_oldConfig->ota );
+	infoJson.concat("}");
+	Serial.println(infoJson);
+	server.send(200, "text/json",infoJson );
+}
 void handleMAC(void){
+	
+	
 	server.send(200, "text/json",macAddressJson );
 }
 void scanWifi(void){
