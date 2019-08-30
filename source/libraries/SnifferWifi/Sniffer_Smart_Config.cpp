@@ -199,7 +199,7 @@ void wifiConfigVerify(){
   	verifyPage.concat("</body></html>");
   	
   	
-  	String ssid, pwd, code, latitude, longitude;
+  	String ssid, pwd, code, latitude, longitude, ota;
     Serial.println("Config Args: ");
     for(int i = 0; i < server.args(); i++){
       Serial.print(server.argName(i));
@@ -220,7 +220,6 @@ void wifiConfigVerify(){
     latitude = server.arg("lat");
 	longitude = server.arg("long");
 	
-    
 	if(server.hasArg("ota")){
 		Serial.println("Having OTA");
 		smartConfig.ota = server.arg("ota").toInt();
