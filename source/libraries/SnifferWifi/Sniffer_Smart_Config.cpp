@@ -74,36 +74,39 @@ void setupAP(HubConfig* oldConfig) {
     Serial.println(" networks found");
     for (int i = 0; i < n; ++i)
      {
+		
       // Print SSID and RSSI for each network found - remove duplicated
       // It's complicated to use SET or Vector in Arduino C++ then here a work around
       String node = "name='ssid' value='";
       node.concat(WiFi.SSID(i));
       node.concat("'>");
-      if (configPage.indexOf(node) > 0) {
-      	break;
-      }
-      Serial.print(i + 1);
-      Serial.print(": ");
-      Serial.print(WiFi.SSID(i));
-      Serial.print(" (");
-      Serial.print(WiFi.RSSI(i));
-      Serial.print(")");
 	  
-      Serial.println(WiFi.encryptionType(i));
-	  //Serial.print("Channel: ");
-	  //Serial.println(WiFi.channel(i));
-	  //Serial.print("BSSIDstr: ");
-	  //Serial.println(WiFi.BSSIDstr(i));
-      delay(10);
-      //configPage.concat("<li><a href='/inputPwd/"+WiFi.SSID(i)+"'>"+WiFi.SSID(i)+"</a></li>");
-      configPage.concat("<li><form method='post' action='/inputPwd' class='inline'>");
-      configPage.concat("<input type='hidden' name='ssid' value='"+ WiFi.SSID(i)+ "'>");
-      configPage.concat("<button type='submit' name='submit_param' value='submit_value' class='link-button'>");
-      configPage.concat(WiFi.SSID(i)+"</button></form></li>");
-      
-	  listWifiJson.concat("{\"ssid\":\"" + WiFi.SSID(i) + "\"}");
-      if (i<n-1){
-		listWifiJson.concat(',');
+      if (configPage.indexOf(node) <=0) {
+		  if (i> 0 && i<n-1){
+			listWifiJson.concat(',');
+		  }
+		  
+		  Serial.print(i + 1);
+		  Serial.print(": ");
+		  Serial.print(WiFi.SSID(i));
+		  Serial.print(" (");
+		  Serial.print(WiFi.RSSI(i));
+		  Serial.print(")");
+		  
+		  Serial.println(WiFi.encryptionType(i));
+		  //Serial.print("Channel: ");
+		  //Serial.println(WiFi.channel(i));
+		  //Serial.print("BSSIDstr: ");
+		  //Serial.println(WiFi.BSSIDstr(i));
+		  delay(10);
+		  //configPage.concat("<li><a href='/inputPwd/"+WiFi.SSID(i)+"'>"+WiFi.SSID(i)+"</a></li>");
+		  configPage.concat("<li><form method='post' action='/inputPwd' class='inline'>");
+		  configPage.concat("<input type='hidden' name='ssid' value='"+ WiFi.SSID(i)+ "'>");
+		  configPage.concat("<button type='submit' name='submit_param' value='submit_value' class='link-button'>");
+		  configPage.concat(WiFi.SSID(i)+"</button></form></li>");
+		  
+		  listWifiJson.concat("{\"ssid\":\"" + WiFi.SSID(i) + "\"}");
+		  
 	  }
 		
      }
@@ -216,10 +219,11 @@ void wifiConfigVerify(){
 	code = server.arg("code");
     latitude = server.arg("lat");
 	longitude = server.arg("long");
+	
     
 	if(server.hasArg("ota")){
 		Serial.println("Having OTA");
-		smartConfig.ota = 1;
+		smartConfig.ota = server.arg("ota").toInt();
 	}else{
 		smartConfig.ota = 0;
 	}
@@ -246,7 +250,7 @@ void wifiConfigVerify(){
   		
 		strcpy(smartConfig.code,code.c_str());
 	    strcpy(smartConfig.latitude,latitude.c_str());
-		strcpy(smartConfig.longitude,longitude.c_str());
+		strcpy(smartConfig.longitude,longitude.c_str());		
 	    strcpy(smartConfig.macStr,_oldConfig->macStr);
 
 	    smartConfig.mode = NORM_MODE;
