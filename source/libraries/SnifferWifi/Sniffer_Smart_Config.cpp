@@ -82,7 +82,7 @@ void setupAP(HubConfig* oldConfig) {
       node.concat("'>");
 	  
       if (configPage.indexOf(node) <=0) {
-		  if (i> 0 && i<n-1){
+		  if (i> 0){
 			listWifiJson.concat(',');
 		  }
 		  
