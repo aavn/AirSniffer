@@ -1,6 +1,6 @@
 {
   "name": "air-sniffer-firmware",
-  "version": "0.19.24_rc",
+  "version": "0.19.22_rc",
   "description": "Staging build for testing on developer server",
   "file": "Sniffer.ino.bin"
 }
