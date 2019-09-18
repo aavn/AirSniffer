@@ -20,6 +20,8 @@
 #include <EEPROM.h>
 
 #include "properties.h"
+#include <SoftwareSerial.h>
+#include <WinsenZE03.h>
 
 SnifferDustSensor dustSensor;
 Environment envData;
@@ -44,7 +46,15 @@ BulkData bulkData;
 
 void performOTA();
 
+SoftwareSerial gtSerial(D5, D8); // Arduino RX, Arduino TX
+WinsenZE03 sensor;
+
+
 void setup() {
+
+  gtSerial.begin(115200);
+  sensor.begin(&gtSerial, O3);
+  sensor.setAs(QA);
  
   Serial.begin(115200);
   Serial.println();
@@ -93,6 +103,10 @@ void fastBlinkForConfiguration() {
 }
 void loop() {
 
+ float ppm = sensor.readManual();
+ Serial.print("OZONE VALUE:");
+ Serial.println(ppm);
+   
   if (needRestart()) {
     ESP.restart();
   } else {
