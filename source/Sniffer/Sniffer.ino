@@ -352,6 +352,10 @@ void sendBulkData(){
       break;
     }
   }
+  Serial.print("Remaining bulk data: " );
+  Serial.print(bulkData.pointer);
+  Serial.print("\t bulk data pointer: " );
+  
   saveBulkData(&bulkData,BULK_INDEX);
   Serial.println("Finish sending bulk data!!");
 }

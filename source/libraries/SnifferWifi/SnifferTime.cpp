@@ -115,13 +115,13 @@ void sendNTPpacket(IPAddress& address) {
 time_t getTimeGap(){
   return timeGap;
 }
-/*bool isTimeSynced(long timeSeconds){
+bool isTimeSynced(time_t timeSeconds){
 	return year(timeSeconds) != ANCIENT_TIME;
 		
 }
 bool isSystemTimeSynced(){
-	return systemTimeSynced;
-}*/
+	return year() != ANCIENT_TIME;
+}
 void printDateTime(){
   Serial.print(year());
   Serial.print('-');
@@ -138,9 +138,18 @@ void printDateTime(){
   Serial.println(now());
 }
 void updateTimestamp(time_t * timeSeconds){
-	if(isSystemTimeSynced()){
-	  if(!isTimeSynced(*timeSeconds)){
-		*timeSeconds += getTimeGap();
+	/*Serial.print(*timeSeconds);
+	Serial.print('\t');
+	Serial.print(bool(year() != ANCIENT_TIME));
+	Serial.print('\t');
+	Serial.print(bool(year(*timeSeconds) == ANCIENT_TIME));
+	Serial.print('\t');
+	*/
+	if(year() != ANCIENT_TIME){
+	  if(year(*timeSeconds) == ANCIENT_TIME){
+		*timeSeconds =  *timeSeconds+getTimeGap();
+		Serial.print(*timeSeconds);
 	  }
   }
+	Serial.print('\n');
 }
