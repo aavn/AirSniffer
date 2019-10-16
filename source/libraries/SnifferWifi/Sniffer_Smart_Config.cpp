@@ -338,11 +338,26 @@ void handleRoot() {
     server.send(200, "text/plain", jsonConfig);
 }*/
 
+void correctInvalidChar(char * c, int size){
+	for(int i  = 0; i < size; i++){
+		if((c[i] > 0 && c[i]  < 32 )|| c[i] > 126){//nonreadable char
+			c[i] = '\0';
+		}
+	}
+	
+}
+   
 void loadConfig(HubConfig* smartConfig){
 	EEPROM.get(0,*smartConfig);
+	correctInvalidChar(smartConfig->macStr,18);
 	if(strlen(smartConfig->macStr) == 0){
 		stpcpy(smartConfig->macStr,WiFi.macAddress().c_str());
 	}
+	correctInvalidChar(smartConfig->ssid,36);
+	correctInvalidChar(smartConfig->pwd,50);
+	correctInvalidChar(smartConfig->code,17);
+	correctInvalidChar(smartConfig->latitude,12);
+	correctInvalidChar(smartConfig->longitude,12);
 }
 void storeConfig(HubConfig* smartConfig){
 	EEPROM.put(0,*smartConfig);

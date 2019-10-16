@@ -129,6 +129,10 @@ void printBulkData(BulkData * bulk){
   Serial.println(bulk->bulkCount);
   for(int i = 0;  i < bulk->bulkCount; i++){
     formatDate(bulk->data[i].time,dateTimeStr );
+	
+	Serial.print("Raw time: ");
+	Serial.print(bulk->data[i].time);
+	Serial.print("\t Formatted: ");
     Serial.println(dateTimeStr);
   }
   Serial.println("====");
