@@ -21,13 +21,13 @@ HTTPUpdateResult checkAndUpdate(String currentVersion){
   requestStr.concat( "Host: " );
   requestStr.concat( SERVER_ADDRESS );
   requestStr.concat( "\r\n");
-  requestStr.concat("Accept: application/vnd.github.v3+json\r\n");
+  //requestStr.concat("Accept: application/vnd.github.v3+json\r\n");
   requestStr.concat( "User-Agent: Sniffer\r\n");
   //requestStr.concat( "Connection: close\r\n");
   requestStr.concat( "\r\n");
-  //Serial.println("REQUEST: \n" );
-  //Serial.println(requestStr);
-  //Serial.println("\nAttempt to make a request to the remote server");
+  Serial.println("REQUEST: \n" );
+  Serial.println(requestStr);
+  Serial.println("\nAttempt to make a request to the remote server");
   
   client.print(requestStr);
   
@@ -58,7 +58,7 @@ HTTPUpdateResult checkAndUpdate(String currentVersion){
   }
   
   response.trim();
-  //Serial.println(response);
+  Serial.println(response);
   //Serial.println(response.length());
   //get latest release number
   StaticJsonDocument<200> jsonDoc;

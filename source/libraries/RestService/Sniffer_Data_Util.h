@@ -11,6 +11,7 @@ struct Environment{
   float temperature;
   float humidity;
   time_t time;
+  float ozone;
 };
 typedef struct{
   Environment data[BULK_CAPACITY];

@@ -16,7 +16,7 @@
 #define CODE_KEY "code"
 #define SENSOR_KEY "sensor"
 
-#define O3_KEY "O3"
+#define OZONE_KEY "O3"
 #define PM25_KEY "PM2.5"
 #define PM10_KEY "PM10"
 #define HUM_KEY "HUM"
@@ -33,6 +33,8 @@
 #define HUM_MIN 0
 #define PM_MAX 999.9
 #define PM_MIN 0.0
+#define OZONE_MIN 0
+#define OZONE_MAX 10000 //ppb
 
 const char degree = char (223);
 const char micro = char (241);
@@ -44,9 +46,10 @@ struct RestProperty{
   String TEMP_SENSOR_pro;
   String PM_SENSOR_pro;
   String mac_str_pro;
+  String OZONE_SENSOR_pro;
 };
 
 
 #define CUBIC_INDEX 0
-#define DATA_SIZE 600
+#define DATA_SIZE 800
 #endif

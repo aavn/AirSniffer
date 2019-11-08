@@ -87,6 +87,22 @@ void formatAAVNData(char * dataStr, Environment * envirData, RestProperty * rest
     Serial.println(envirData->novaPm10);
     Serial.println("/*******************************/");
   }
+  if(envirData->ozone >= OZONE_MIN && envirData->ozone <= OZONE_MAX){
+    JsonObject ozoneVal = values.createNestedObject();
+    ozoneVal[CODE_KEY] = OZONE_KEY;
+    ozoneVal[SENSOR_KEY] = restProperty->OZONE_SENSOR_pro;
+    
+    JsonObject ozoneData = ozoneVal.createNestedObject(VAL_KEY);
+    ozoneData["value"] = envirData->ozone;
+	if(envirData->time > 0){
+		ozoneData[MEASURE_KEY] = dateTimeStr;
+	}
+  }else{
+    Serial.println("/*******************************/");
+    Serial.print("ERROR reading Ozone: ");
+    Serial.println(envirData->ozone);
+    Serial.println("/*******************************/");
+  }
   //serializeJson(doc, Serial);
   
   serializeJson(doc, dataStr,DATA_SIZE);
@@ -104,6 +120,8 @@ void printData(Environment * envirData){
   Serial.print(envirData->temperature);
   Serial.print(" Humidity: ");
   Serial.print(envirData->humidity);
+  Serial.print(" Ozone: ");
+  Serial.print(envirData->ozone);
   Serial.print(" Time: ");
   Serial.print(envirData->time);
   Serial.println();
@@ -129,6 +147,10 @@ void printBulkData(BulkData * bulk){
   Serial.println(bulk->bulkCount);
   for(int i = 0;  i < bulk->bulkCount; i++){
     formatDate(bulk->data[i].time,dateTimeStr );
+	
+	Serial.print("Raw time: ");
+	Serial.print(bulk->data[i].time);
+	Serial.print("\t Formatted: ");
     Serial.println(dateTimeStr);
   }
   Serial.println("====");
