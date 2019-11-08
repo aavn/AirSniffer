@@ -23,16 +23,12 @@ extern dht DHT;
 #define DHT11_PIN D3 //GPO05 
 #define CONFIG_BTN D4 //GPO02
 #define ERR_PIN D2  //GPO14
-//#define OK_PIN D2  //GPO04
+
 #define NOVA_RX D7  //GPO13
 #define NOVA_TX D6  //GPO12
-//#define REF_PIN D0  //GPO16
-//#define REF_PIN A0  
+
 #define DONE_PIN D1 
 #define OZONE_RX D5
 #define OZONE_TX D0
-
-
-//#define SENSOR_ERR 3
 
 #endif

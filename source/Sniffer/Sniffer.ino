@@ -1,4 +1,3 @@
-
 #define SNIFFER_TEST true //true: running on test server, false: running on production server
 
 #if SNIFFER_TEST
@@ -379,4 +378,5 @@ void sendBulkData(){
   }
   saveBulkData(&bulkData,BULK_INDEX);
   Serial.println("Finish sending bulk data!!");
+
 }

@@ -1,6 +1,6 @@
 {
   "name": "air-sniffer-firmware",
-  "version": "0.19.23",
+  "version": "0.19.24",
   "description": "Firmware running on the ESP8266 to collect air quality data",
   "file": "Sniffer.ino.bin"
 }
