@@ -8,12 +8,12 @@
 #include <WinsenZE03.h>
 #include <SoftwareSerial.h>
 
-SoftwareSerial gtSerial(D5, D8); // Arduino RX, Arduino TX
+SoftwareSerial gtSerial(D5, D1); // Arduino RX, Arduino TX
 WinsenZE03 sensor;
 
 
 void setup() {
-  gtSerial.begin(115200);
+  gtSerial.begin(9600);
   Serial.begin(115200);
   sensor.begin(&gtSerial, O3);
 	sensor.setAs(QA);
@@ -22,4 +22,5 @@ void loop() {
  float ppm = sensor.readManual();
  Serial.print("OZONE VALUE:");
  Serial.println(ppm);
+ delay(5000);
 }
