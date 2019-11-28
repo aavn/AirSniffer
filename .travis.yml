@@ -4,7 +4,8 @@
 language: generic
 branches:
   only:
-    - bulk_data
+    - master
+    - ozone_research
 env:
   global:
     - IDE_VERSION=1.8.1
