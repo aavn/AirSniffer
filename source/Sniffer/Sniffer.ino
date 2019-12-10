@@ -1,4 +1,4 @@
-#define SNIFFER_TEST true //true: running on test server, false: running on production server
+#define SNIFFER_TEST false //true: running on test server, false: running on production server
 
 #if SNIFFER_TEST
   #include <SnifferOTA_staging.h>
@@ -220,7 +220,7 @@ void showSaveDataError() {
   }
 }
 
-void highInterrupt() {
+ICACHE_RAM_ATTR void  highInterrupt() {
   btnVoltage = analogRead(CONFIG_BTN);
 //  refVoltage = analogRead(REF_PIN);
   Serial.print("BTN: ");
