@@ -115,9 +115,13 @@ void setupAP(HubConfig* oldConfig) {
   listWifiJson.concat("]");
     
   delay(100);
-  WiFi.softAP(smartConfigSSID);
-  Serial.println("softap");
-  Serial.println("");
+  String softAP = "";
+  softAP.concat(smartConfigSSID);
+  softAP.concat("-");
+  softAP.concat(_oldConfig->macStr);
+  WiFi.softAP(softAP);
+  Serial.print("\nsoftap:");
+  Serial.println(softAP);
   launchWeb();
   Serial.println("over");
 }
