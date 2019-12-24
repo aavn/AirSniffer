@@ -20,15 +20,17 @@
 //extern bool wifiStatus;
 extern dht DHT;
 
+//input pins
 #define DHT11_PIN D3 //GPO05 
 #define CONFIG_BTN D4 //GPO02
-#define ERR_PIN D2  //GPO14
-
 #define NOVA_RX D7  //GPO13
 #define NOVA_TX D6  //GPO12
-
-#define DONE_PIN D1 
 #define OZONE_RX D5
-#define OZONE_TX D0
+#define OZONE_TX D8//D0
+
+//output pins
+#define ERR_PIN D2  //GPO14
+#define DONE_PIN D1 
+
 
 #endif
