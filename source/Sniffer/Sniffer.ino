@@ -248,7 +248,7 @@ void readSnifferData() {
   Serial.print("OZONE VALUE:");
   Serial.println(envData.ozone);
   int attemp = 0;
-  while ((envData.ozone < 0 || envData.ozone >= 10000) && attemp++ < 3) { //try 3 time read
+  while ((envData.ozone <= 0 || envData.ozone >= 10000) && attemp++ < 3) { //try 3 time read
     Serial.println("Ozone sensor doesn't work properly");
     envData.ozone = ozoneSensor.readManual();
     Serial.print("OZONE VALUE:");

@@ -61,7 +61,7 @@ float WinsenZE03::readManual(){
   if (measure[0]==0xff && measure[1]==0x86){
     ppm = measure[2]*256+measure[3];// this formula depends of the sensor is in the dataSheet
     if (_type == 2){
-      //ppm = ppm*0.001;
+       ppm = ppm*0.1;
     }
   }else{
     ppm=-1;
