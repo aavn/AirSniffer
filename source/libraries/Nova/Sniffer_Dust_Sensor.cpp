@@ -41,7 +41,7 @@ bool SnifferDustSensor::readDustData(){
     int attemp = 0;
     ok = calcNovaPM();
     //If data error or we've tried already 20 times, stop
-    while((envData.novaPm25 <= 0 || envData.novaPm10 <= 0 || envData.novaPm25 >= 300 || envData.novaPm10 >=1000) && attemp++<20) {
+    while((envData.novaPm25 < 0 || envData.novaPm10 < 0 || envData.novaPm25 >= 300 || envData.novaPm10 >=1000) && attemp++<20) {
       if ((lastAttempt-millis())>5000) {
       lastAttempt = millis();
       	Serial.println("Nova sensor doesn't work properly");
