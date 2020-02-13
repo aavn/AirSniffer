@@ -1,4 +1,3 @@
-
 #define SNIFFER_TEST false //true: running on test server, false: running on production server
 
 #if SNIFFER_TEST
@@ -20,6 +19,8 @@
 #include <EEPROM.h>
 
 #include "properties.h"
+#include <SoftwareSerial.h>
+#include <WinsenZE03.h>
 
 SnifferDustSensor dustSensor;
 Environment envData;
@@ -27,7 +28,7 @@ RestProperty restProperty ;
 HubConfig hubConfig;
 dht DHT;
 #define BULK_INDEX sizeof(hubConfig)
-int btnVoltage, refVoltage;
+int btnVoltage, refVoltage = 0;
 bool led_status = false;
 unsigned long lastCall;
 unsigned long lastReadCall;
@@ -44,7 +45,16 @@ BulkData bulkData;
 
 void performOTA();
 
+//SoftwareSerial gtSerial; // Arduino RX, Arduino TX
+WinsenZE03 ozoneSensor;
+
+
 void setup() {
+  delay (200);
+  SoftwareSerial * gtSerial = new SoftwareSerial(OZONE_RX,OZONE_TX);
+  gtSerial->begin(9600);
+  ozoneSensor.begin(gtSerial, O3);
+  ozoneSensor.setAs(QA);
  
   Serial.begin(115200);
   Serial.println();
@@ -53,7 +63,7 @@ void setup() {
   Serial.println(VERSION);
   pinMode(CONFIG_BTN, INPUT_PULLUP);
   pinMode(ERR_PIN, OUTPUT);
-  pinMode(REF_PIN, OUTPUT);
+///  pinMode(REF_PIN, INPUT);
   pinMode(DONE_PIN, OUTPUT);
   digitalWrite(DONE_PIN, LOW);
   attachInterrupt(CONFIG_BTN, highInterrupt, FALLING);
@@ -92,7 +102,6 @@ void fastBlinkForConfiguration() {
     turnLedOff();
 }
 void loop() {
-
   if (needRestart()) {
     ESP.restart();
   } else {
@@ -175,7 +184,7 @@ void readRestfulConfig() {
   restProperty.TEMP_SENSOR_pro = TEMP_SENSOR;
   restProperty.PM_SENSOR_pro = PM_SENSOR;
   restProperty.mac_str_pro = hubConfig.macStr;
-  
+  restProperty.OZONE_SENSOR_pro = OZONE_SENSOR;
   
 }
 
@@ -212,9 +221,13 @@ void showSaveDataError() {
   }
 }
 
-void highInterrupt() {
+ICACHE_RAM_ATTR void  highInterrupt() {
   btnVoltage = analogRead(CONFIG_BTN);
-  refVoltage = analogRead(REF_PIN);
+//  refVoltage = analogRead(REF_PIN);
+  Serial.print("BTN: ");
+  Serial.println(btnVoltage);
+/*  Serial.print(" REF: ");
+  Serial.println(refVoltage);*/
   if (btnVoltage == refVoltage) {
     WiFi.disconnect();
     WiFi.mode(WIFI_OFF);
@@ -231,8 +244,20 @@ void readSnifferData() {
   envData.novaPm25 = dustSensor.getPM25();
   envData.novaPm10 = dustSensor.getPM10();
 
-  readTemperatureAndHumidity();
+  envData.ozone = ozoneSensor.readManual();
+  Serial.print("OZONE VALUE:");
+  Serial.println(envData.ozone);
   int attemp = 0;
+  while ((envData.ozone <= 0 || envData.ozone >= 10000) && attemp++ < 3) { //try 3 time read
+    Serial.println("Ozone sensor doesn't work properly");
+    envData.ozone = ozoneSensor.readManual();
+    Serial.print("OZONE VALUE:");
+    Serial.println(envData.ozone);
+    delay(5000);
+  }
+  
+  readTemperatureAndHumidity();
+  attemp = 0;
   while ((envData.temperature <= 0 || envData.humidity <= 0) && attemp++ < 3) { //try 3 time read
     Serial.println("DHT11 sensor doesn't work properly");
     readTemperatureAndHumidity();
@@ -352,10 +377,7 @@ void sendBulkData(){
       break;
     }
   }
-  Serial.print("Remaining bulk data: " );
-  Serial.print(bulkData.pointer);
-  Serial.print("\t bulk data pointer: " );
-  
   saveBulkData(&bulkData,BULK_INDEX);
   Serial.println("Finish sending bulk data!!");
+
 }

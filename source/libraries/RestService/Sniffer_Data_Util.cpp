@@ -23,7 +23,7 @@ void formatAAVNData(char * dataStr, Environment * envirData, RestProperty * rest
   source_gpsLocation[LONG_KEY] = restProperty->longitude_pro;
   
   JsonArray values = doc.createNestedArray(VALS_KEY);
-  if(envirData->humidity >= HUM_MIN && envirData->humidity <= HUM_MAX){
+  if(envirData->humidity > HUM_MIN && envirData->humidity <= HUM_MAX){
     JsonObject humVal = values.createNestedObject();
     humVal[CODE_KEY] = HUM_KEY;
     humVal[SENSOR_KEY] = restProperty->TEMP_SENSOR_pro;
@@ -39,7 +39,7 @@ void formatAAVNData(char * dataStr, Environment * envirData, RestProperty * rest
     Serial.println(envirData->humidity);
     Serial.println("/*******************************/");
   }
-  if(envirData->temperature >= TEMP_MIN && envirData->temperature <= TEMP_MAX){
+  if(envirData->temperature > TEMP_MIN && envirData->temperature <= TEMP_MAX){
     JsonObject tempVal = values.createNestedObject();
     tempVal[CODE_KEY] = TEMP_KEY;
     tempVal[SENSOR_KEY] = restProperty->TEMP_SENSOR_pro;
@@ -55,7 +55,7 @@ void formatAAVNData(char * dataStr, Environment * envirData, RestProperty * rest
     Serial.println(envirData->temperature);
     Serial.println("/*******************************/");
   }
-  if(envirData->novaPm25 >= PM_MIN && envirData->novaPm25 <= PM_MAX){
+  if(envirData->novaPm25 > PM_MIN && envirData->novaPm25 <= PM_MAX){
     JsonObject pm25Val = values.createNestedObject();
     pm25Val[CODE_KEY] = PM25_KEY;
     pm25Val[SENSOR_KEY] = restProperty->PM_SENSOR_pro;
@@ -71,7 +71,7 @@ void formatAAVNData(char * dataStr, Environment * envirData, RestProperty * rest
     Serial.println(envirData->novaPm25);
     Serial.println("/*******************************/");
   }
-  if(envirData->novaPm10 >= PM_MIN && envirData->novaPm10 <= PM_MAX){
+  if(envirData->novaPm10 > PM_MIN && envirData->novaPm10 <= PM_MAX){
     JsonObject pm10Val = values.createNestedObject();
     pm10Val[CODE_KEY] = PM10_KEY;
     pm10Val[SENSOR_KEY] = restProperty->PM_SENSOR_pro;
@@ -85,6 +85,22 @@ void formatAAVNData(char * dataStr, Environment * envirData, RestProperty * rest
     Serial.println("/*******************************/");
     Serial.print("ERROR reading PM10: ");
     Serial.println(envirData->novaPm10);
+    Serial.println("/*******************************/");
+  }
+  if(envirData->ozone > OZONE_MIN && envirData->ozone <= OZONE_MAX){
+    JsonObject ozoneVal = values.createNestedObject();
+    ozoneVal[CODE_KEY] = OZONE_KEY;
+    ozoneVal[SENSOR_KEY] = restProperty->OZONE_SENSOR_pro;
+    
+    JsonObject ozoneData = ozoneVal.createNestedObject(VAL_KEY);
+    ozoneData["value"] = envirData->ozone;
+	if(envirData->time > 0){
+		ozoneData[MEASURE_KEY] = dateTimeStr;
+	}
+  }else{
+    Serial.println("/*******************************/");
+    Serial.print("ERROR reading Ozone: ");
+    Serial.println(envirData->ozone);
     Serial.println("/*******************************/");
   }
   //serializeJson(doc, Serial);
@@ -104,6 +120,8 @@ void printData(Environment * envirData){
   Serial.print(envirData->temperature);
   Serial.print(" Humidity: ");
   Serial.print(envirData->humidity);
+  Serial.print(" Ozone: ");
+  Serial.print(envirData->ozone);
   Serial.print(" Time: ");
   Serial.print(envirData->time);
   Serial.println();
