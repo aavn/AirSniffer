@@ -9,7 +9,7 @@
 #define SAMPLES 10
 #define SLEEP_PERIOD 15 //15 minutes sleep
 #define SENSOR_ERR 3
-#define LED_SIGNAL 4
+#define LED_SIGNAL 13
 
 struct Environment{
   float novaPm25;
@@ -22,4 +22,3 @@ extern Environment envData;
 extern SoftwareSerial novaSerial;
 
 #endif
-

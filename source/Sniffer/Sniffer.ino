@@ -51,6 +51,7 @@ void loop()
     while(envData.novaPm25 <= 0 || envData.novaPm10 <= 0){
       Serial.println("Nova sensor doesn't work properly");
       calcNovaPM();
+      digitalWrite(LED_SIGNAL, LOW);
       delay(5000);
     }
     
@@ -169,4 +170,3 @@ void sendInfoToHub(){
 
 
  
-
