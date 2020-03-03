@@ -8,6 +8,7 @@
 #include "Sniffer_Rest_Property_staging.h"
 
 #define STATUS_201 "HTTP/1.1 201 Created"
+#define STATUS_200 "HTTP/1.1 200 OK"
 bool saveData(Environment * envirData, RestProperty * restProperty)
 {
   // Attempt to make a connection to the remote server
@@ -62,7 +63,7 @@ bool saveData(Environment * envirData, RestProperty * restProperty)
   Serial.println(response);
   client.stop();
   response.trim();
-  if(response.startsWith(STATUS_201)){
+  if(response.startsWith(STATUS_201)|| response.startsWith(STATUS_200)){
 	  return true;
   }else{
 	  return false;
@@ -121,7 +122,7 @@ bool saveData_staging(Environment * envirData, RestProperty * restProperty)
   Serial.println(response);
   client.stop();
   response.trim();
-  if(response.startsWith(STATUS_201)){
+  if(response.startsWith(STATUS_201)|| response.startsWith(STATUS_200)){
 	  return true;
   }else{
 	  return false;

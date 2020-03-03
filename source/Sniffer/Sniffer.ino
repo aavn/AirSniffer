@@ -153,7 +153,7 @@ void loop() {
               saveBulkData(&bulkData,BULK_INDEX);
               blink_type = LED_SAVE_DATA_ERROR;
             }
-            WiFi.disconnect();
+            //WiFi.disconnect();
           } else {
             //save data for later 
             addBulkData(&bulkData, &envData);
@@ -168,9 +168,9 @@ void loop() {
       showSnifferStatus();
       for (int i=0; i<100; i++) {
         digitalWrite(DONE_PIN, HIGH);
-        delay(1);
+        delay(5);
         digitalWrite(DONE_PIN, LOW);
-        delay(1);
+        delay(5);
       }
     }
   } //not restart
