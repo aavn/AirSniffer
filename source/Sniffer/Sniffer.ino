@@ -51,10 +51,7 @@ WinsenZE03 ozoneSensor;
 
 void setup() {
   delay (200);
-  SoftwareSerial * gtSerial = new SoftwareSerial(OZONE_RX,OZONE_TX);
-  gtSerial->begin(9600);
-  ozoneSensor.begin(gtSerial, O3);
-  ozoneSensor.setAs(QA);
+  
  
   Serial.begin(115200);
   Serial.println();
@@ -77,14 +74,19 @@ void setup() {
 
   } else {
     performOTA();
-    dustSensor.begin(NOVA_RX, NOVA_TX);
+    
     performSyncTime();
     printDateTime();
     Serial.println("Loading bulk data");
     loadBulkData(&bulkData,BULK_INDEX);
     updateTimestamp(&bulkData);
     printBulkData(&bulkData);
-    
+    SoftwareSerial * gtSerial = new SoftwareSerial(OZONE_RX,OZONE_TX);
+    gtSerial->begin(9600);
+    ozoneSensor.begin(gtSerial, O3);
+    ozoneSensor.setAs(QA);
+    delay (200);
+    dustSensor.begin(NOVA_RX, NOVA_TX);
   }
   lastCall = millis();
   lastReadCall = millis();
