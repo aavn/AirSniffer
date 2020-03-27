@@ -9,7 +9,12 @@ void formatAAVNData(char * dataStr, Environment * envirData, RestProperty * rest
   // put your setup code here, to run once:
   const size_t capacity = DATA_SIZE + 100;//JSON_ARRAY_SIZE(4) + 4*JSON_OBJECT_SIZE(1) + 2*JSON_OBJECT_SIZE(2) + 5*JSON_OBJECT_SIZE(3);
   char dateTimeStr[25];
+  if(year(envirData->time) == 1970 || envirData->time == 0){
+	strcpy(dateTimeStr,"");
+  }else{
   formatDate(envirData->time,dateTimeStr );
+  }
+  
   Serial.println("CAPACITY: ");
   Serial.println(capacity);
   DynamicJsonDocument doc(capacity);
@@ -30,7 +35,7 @@ void formatAAVNData(char * dataStr, Environment * envirData, RestProperty * rest
     
     JsonObject humValData = humVal.createNestedObject(VAL_KEY);
     humValData["value"] = envirData->humidity;
-	if(envirData->time > 0){
+	if(strlen(dateTimeStr) > 0){
 		humValData[MEASURE_KEY] = dateTimeStr;
 	}
   }else{
@@ -46,7 +51,7 @@ void formatAAVNData(char * dataStr, Environment * envirData, RestProperty * rest
     
     JsonObject tempValData = tempVal.createNestedObject(VAL_KEY);
     tempValData["value"] = envirData->temperature;
-	if(envirData->time > 0){
+	if(strlen(dateTimeStr) > 0){
 		tempValData[MEASURE_KEY] = dateTimeStr;
 	}
   }else{
@@ -62,7 +67,7 @@ void formatAAVNData(char * dataStr, Environment * envirData, RestProperty * rest
     
     JsonObject pm25ValData = pm25Val.createNestedObject(VAL_KEY);
     pm25ValData["value"] = envirData->novaPm25;
-	if(envirData->time > 0){
+	if(strlen(dateTimeStr) > 0){
 		pm25ValData[MEASURE_KEY] = dateTimeStr;
 	}
   }else{
@@ -78,7 +83,7 @@ void formatAAVNData(char * dataStr, Environment * envirData, RestProperty * rest
     
     JsonObject pm10ValData = pm10Val.createNestedObject(VAL_KEY);
     pm10ValData["value"] = envirData->novaPm10;
-	if(envirData->time > 0){
+	if(strlen(dateTimeStr) > 0){
 		pm10ValData[MEASURE_KEY] = dateTimeStr;
 	}
   }else{
@@ -94,7 +99,7 @@ void formatAAVNData(char * dataStr, Environment * envirData, RestProperty * rest
     
     JsonObject ozoneData = ozoneVal.createNestedObject(VAL_KEY);
     ozoneData["value"] = envirData->ozone;
-	if(envirData->time > 0){
+	if(strlen(dateTimeStr) > 0){
 		ozoneData[MEASURE_KEY] = dateTimeStr;
 	}
   }else{
@@ -112,6 +117,7 @@ void printData(Environment * envirData){
   //int index=0;
   //index=index+1;
   //Serial.print(index );
+  char dateTimeStr[25];
   Serial.print(" Nova_PM2.5: ");
   Serial.print(envirData->novaPm25);
   Serial.print(" Nova_PM10: ");
@@ -123,7 +129,8 @@ void printData(Environment * envirData){
   Serial.print(" Ozone: ");
   Serial.print(envirData->ozone);
   Serial.print(" Time: ");
-  Serial.print(envirData->time);
+  formatDate(envirData->time,dateTimeStr );
+  Serial.print(dateTimeStr);
   Serial.println();
 }
 void addBulkData(BulkData * bulk, Environment * toAdd){

@@ -2,10 +2,18 @@
 #include <EEPROM.h>
 #include <ESP8266WebServer.h>
 #include <WiFiClientSecure.h>
-//Sniffer state
+//Sniffer operation mode
 #define CONFIG_MODE 1
 #define NORM_MODE 0
-#define ONBOARDED -1
+
+//Sniffer onboarding status
+#define ONBOARDED -1 //when sniffer running in normal mode
+#define FAILED 0     //fail to config wifi
+#define OK 1         //wifi verification OK
+#define VERIFYING 2  //verifying wifi (ssid & pwd)
+#define RESTART 3    //received restart command from mobile app
+#define ONBOARDING 4 //hotspot open, waiting for sniffer config
+///////////////////////////
 
 #define EEPROM_SIZE 1024
 
@@ -16,7 +24,7 @@ String configPage;
 String macAddressJson;
 String listWifiJson;
 ESP8266WebServer server(httpPort);
-int snifferState;
+int snifferState = ONBOARDED;
 HubConfig * _oldConfig;
 bool wifiConnected = false;
 
@@ -30,7 +38,8 @@ void wifiConfigResult();
 void scanWifi();
 //server function
 void launchWeb(void);
-
+void snifferConfigResult(void);
+void handleRestart(void);
 //void clearStoredWifi(void);
 
 ///////////////////
@@ -52,7 +61,7 @@ void setupAP(HubConfig* oldConfig) {
   }
   delay(100);
   
-  //jsonConfig="{'data':[";
+  
   
   configPage = "";
   configPage.concat("<html lang='en-us'><head><title>Sniffer configuration</title>");
@@ -123,6 +132,7 @@ void setupAP(HubConfig* oldConfig) {
   Serial.print("\nsoftap:");
   Serial.println(softAP);
   launchWeb();
+  snifferState = ONBOARDING;
   Serial.println("over");
 }
 
@@ -140,6 +150,9 @@ void launchWeb(void) {
     server.on("/api/sniffer/mac",handleMAC);
 	server.on("/api/sniffer/listWifi",scanWifi);
 	server.on("/api/sniffer/info",handleInfo);
+	server.on("/api/sniffer/status", snifferConfigResult);
+	server.on("/api/sniffer/restart",handleRestart);
+    server.on("/api/sniffer/verify",wifiConfigVerify);
         
     server.begin();
     Serial.println("Server started");   
@@ -185,9 +198,26 @@ void handleInfo(void){
 	Serial.println(infoJson);
 	server.send(200, "text/json",infoJson );
 }
+void snifferConfigResult(void){
+	String statusJson = "{\"wifiStatus\": \"";
+	if(snifferState == OK){
+		statusJson.concat("OK");
+	}else if(snifferState == FAILED){
+		statusJson.concat("Failed");
+	}else if(snifferState == VERIFYING){
+		statusJson.concat("Verifying");
+	}else {
+		statusJson.concat("Unknown");
+	}
+	statusJson.concat("\"}");
+	server.send(200, "text/json",statusJson );
+}
+void handleRestart(void){
+	snifferState = RESTART;
+	server.send(200, "text/json","{\"response\": \"OK\"} " );
+	delay(3000);
+}
 void handleMAC(void){
-	
-	
 	server.send(200, "text/json",macAddressJson );
 }
 void scanWifi(void){
@@ -235,17 +265,19 @@ void wifiConfigVerify(){
 	strcpy(smartConfig.pwd,pwd.c_str());
 	//send response to client
 	server.send(200, "text/html", verifyPage);
-	
+	snifferState = VERIFYING;
+	WiFi.mode(WIFI_AP_STA);
 	WiFi.begin(smartConfig.ssid,smartConfig.pwd);
 	int c = 0;
 	Serial.print("Wifi connecting");
-	while ( c < 30 ) {
+	wifiConnected = false;
+	while ( c < RETRY_LIM ) {
     	if (WiFi.status() == WL_CONNECTED) { 
     		wifiConnected = true;
       		break; 
     	} 
     	Serial.print(".");
-    	delay(500);
+    	delay(1000);
     	c++;
   	}
   	if (wifiConnected) {
@@ -258,6 +290,10 @@ void wifiConfigVerify(){
 
 	    smartConfig.mode = NORM_MODE;
 	    storeConfig(&smartConfig);
+		snifferState = OK;
+  	}else{
+		Serial.println("Wifi failed");
+		snifferState = FAILED;
   	}
 }
 
@@ -278,12 +314,12 @@ void wifiConfigResult(){
   	htmlStr.concat("</body></html>");
 
 	if (wifiConnected) {
-		snifferState = ONBOARDED;
+		
 		Serial.println("Wifi connected");
 	    server.send(200, "text/html", htmlStr);
 	    delay(500);
-		
-		WiFi.mode(WIFI_STA);
+		//Turn off hotspot
+		//WiFi.mode(WIFI_STA);
 		
 	} else {
   		Serial.println("Wifi NOT connected");
@@ -427,5 +463,5 @@ void printConfig(HubConfig* smartConfig){
 	Serial.print("MAC: "); Serial.println(smartConfig->macStr);
 }
 bool needRestart(){
-	return snifferState == ONBOARDED;
+	return snifferState == RESTART;
 }

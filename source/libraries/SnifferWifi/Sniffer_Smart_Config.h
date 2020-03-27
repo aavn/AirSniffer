@@ -4,7 +4,7 @@
 
 #define smartConfigSSID "SNIFFER"
 #define httpPort 80
-
+#define RETRY_LIM 50
 //macros
 #define isOTA(ota_st)  (ota_st == 1)
 #define isConfigMode(config_st) (config_st == 1)
