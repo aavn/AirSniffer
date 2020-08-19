@@ -13,8 +13,11 @@ bool saveData(Environment * envirData, RestProperty * restProperty)
 {
   // Attempt to make a connection to the remote server
   Serial.println("\nAttempt to make a connection to the remote server");
+  //Serial.println(finger );
 	WiFiClientSecure client;
-	client.setFingerprint(finger);
+  Serial.printf("Using unsecure");
+  client.setInsecure();
+
   if ( !client.connect(serverAddress, serverPort) ) {
     Serial.println("connection failed");
 	return false;

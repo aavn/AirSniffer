@@ -3,18 +3,19 @@
 #include <WiFiClientSecure.h>
 #include <ArduinoJson.h>
 
+
 HTTPUpdateResult checkAndUpdate(String currentVersion){
   HTTPUpdateResult result = HTTP_UPDATE_NO_UPDATES;
   WiFiClientSecure client;
   Serial.println("\nAttempt to check for update from the remote server");
-  Serial.printf("Using fingerprint '%s'\n", SERVER_FINGER);
-  client.setFingerprint(SERVER_FINGER);
+  Serial.printf("Using unsecure");
+  client.setInsecure();
   if ( !client.connect(SERVER_ADDRESS, 443) ) {
-    //Serial.println("connection failed");
+    Serial.println("connection failed");
     return HTTP_UPDATE_FAILED;
   }
-  ////Serial.println("\n\n---------------------------------------------------------------------\n");
-  ////Serial.println("REQUEST: \n" );
+  Serial.println("\n\n---------------------------------------------------------------------\n");
+  Serial.println("REQUEST: \n" );
   String requestStr = String("GET ") ;
   requestStr.concat( RELEASE_URL);
   requestStr.concat(  " HTTP/1.1\r\n" );
@@ -32,8 +33,8 @@ HTTPUpdateResult checkAndUpdate(String currentVersion){
   client.print(requestStr);
   
   // If there are incoming bytes, print them
-  //Serial.println("\n\n---------------------------------------------------------------------\n");
-  //Serial.println("RESPONSE: \n" );
+  Serial.println("\n\n---------------------------------------------------------------------\n");
+  Serial.println("RESPONSE: \n" );
   // Read all the lines of the reply from server and print them to Serial
   int waitcount = 0;
   while (!client.available() && waitcount++ < 300) {
@@ -117,10 +118,10 @@ HTTPUpdateResult checkAndUpdate_staging(String currentVersion){
   HTTPUpdateResult result = HTTP_UPDATE_NO_UPDATES;
   WiFiClientSecure client;
   Serial.println("\nAttempt to check for update from the remote server");
-  Serial.printf("Using fingerprint '%s'\n", SERVER_FINGER_STAGING);
-  client.setFingerprint(SERVER_FINGER_STAGING);
+  Serial.printf("Using unsecure");
+  client.setInsecure();
   if ( !client.connect(SERVER_ADDRESS_STAGING, 443) ) {
-    //Serial.println("connection failed");
+    Serial.println("connection failed");
     return HTTP_UPDATE_FAILED;
   }
   ////Serial.println("\n\n---------------------------------------------------------------------\n");
