@@ -23,7 +23,7 @@ HTTPUpdateResult checkAndUpdate(String currentVersion){
   requestStr.concat( SERVER_ADDRESS );
   requestStr.concat( "\r\n");
   //requestStr.concat("Accept: application/vnd.github.v3+json\r\n");
-  requestStr.concat( "User-Agent: Sniffer\r\n");
+  requestStr.concat( "User-Agent: SnifferHub\r\n");
   //requestStr.concat( "Connection: close\r\n");
   requestStr.concat( "\r\n");
   Serial.println("REQUEST: \n" );
@@ -133,7 +133,7 @@ HTTPUpdateResult checkAndUpdate_staging(String currentVersion){
   requestStr.concat( SERVER_ADDRESS_STAGING );
   requestStr.concat( "\r\n");
   requestStr.concat("Accept: application/vnd.github.v3+json\r\n");
-  requestStr.concat( "User-Agent: Sniffer\r\n");
+  requestStr.concat( "User-Agent: SnifferHub\r\n");
   //requestStr.concat( "Connection: close\r\n");
   requestStr.concat( "\r\n");
   //Serial.println("REQUEST: \n" );

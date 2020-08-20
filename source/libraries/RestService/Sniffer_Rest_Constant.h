@@ -47,6 +47,7 @@ struct RestProperty{
   String PM_SENSOR_pro;
   String mac_str_pro;
   String OZONE_SENSOR_pro;
+  String version_pro;
 };
 
 

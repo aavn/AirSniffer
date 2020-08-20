@@ -24,6 +24,8 @@ bool saveData(Environment * envirData, RestProperty * restProperty)
   }
   Serial.println("\n\n---------------------------------------------------------------------\n");
   Serial.println("REQUEST: \n" );
+  Serial.print("version: ");
+  Serial.println(restProperty->version_pro);
   // We now create a URI for the request
   //String postData = "{\"source\": {\"senderCode\": \"143253\",\"netAddress\": \"192.168.1.1\"},\"data\": [{\"symbolCode\": \"O3\",\"value\": 4.1}, {\"symbolCode\": \"PM2.5\",\"value\": 55}]}";
   char data[600];
@@ -37,7 +39,9 @@ bool saveData(Environment * envirData, RestProperty * restProperty)
 	requestStr.concat(snifferUrl);
 	requestStr.concat(" HTTP/1.1\r\nHost: ");
 	requestStr.concat(serverAddress);
-	requestStr.concat( "\r\nUser-Agent: SnifferHub\r\nContent-Length: " );
+	requestStr.concat( "\r\nUser-Agent: SnifferHub/");
+	requestStr.concat( restProperty->version_pro);
+	requestStr.concat( "\r\nContent-Length: " );
 	requestStr.concat(strLenght);
 	requestStr.concat("\r\nContent-Type: application/json\r\nConnection: close\r\n\r\n");
 	requestStr.concat(data);
@@ -96,7 +100,9 @@ bool saveData_staging(Environment * envirData, RestProperty * restProperty)
 	requestStr.concat(snifferUrl_staging);
 	requestStr.concat(" HTTP/1.1\r\nHost: ");
 	requestStr.concat(serverAddress_staging);
-	requestStr.concat( "\r\nUser-Agent: SnifferHub\r\nContent-Length: " );
+	requestStr.concat( "\r\nUser-Agent: SnifferHub/");
+	requestStr.concat( restProperty->version_pro);
+	requestStr.concat( "\r\nContent-Length: " );
 	requestStr.concat(strLenght);
 	requestStr.concat("\r\nContent-Type: application/json\r\nConnection: close\r\n\r\n");
 	requestStr.concat(data);
