@@ -187,7 +187,7 @@ void readRestfulConfig() {
   restProperty.PM_SENSOR_pro = PM_SENSOR;
   restProperty.mac_str_pro = hubConfig.macStr;
   restProperty.OZONE_SENSOR_pro = OZONE_SENSOR;
-  
+  restProperty.version_pro = VERSION;
 }
 
 void showSnifferStatus() {
